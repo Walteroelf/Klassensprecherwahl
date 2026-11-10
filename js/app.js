@@ -259,9 +259,11 @@
   }
 
   async function teacherLogin() {
-    if (booth) return;
+    if (booth && (booth.busy || committing)) return;
+    if (booth) booth.deadline = Date.now() + LOCK_MS;   // während der Code-Eingabe nicht automatisch sperren
     var ok = await askCode({ title: 'Code eingeben', text: 'Bereich für die Lehrkraft', getLock: S.lockRemaining, onCode: verifyCode });
     if (!ok) return;
+    if (booth) await cancelUnlock();                     // laufende Freischaltung zurücknehmen (es wurde noch nichts gezählt)
     teacherAuthed = true;
     pushState();
     if (cur) menuView(); else homeView();
@@ -764,7 +766,8 @@
           })),
         h('div', { class: 'abstain' },
           h('button', { class: 'btn btn-secondary', onclick: function () { choose(null); } }, 'Ich möchte niemanden wählen'),
-          settings.speech && speechAvailable() ? h('button', { class: 'btn btn-secondary', onclick: function () { speak('Ich möchte niemanden wählen'); } }, '🔊') : null)));
+          settings.speech && speechAvailable() ? h('button', { class: 'btn btn-secondary', onclick: function () { speak('Ich möchte niemanden wählen'); } }, '🔊') : null)),
+      logoEl());
     speak(headline + '. Tippe auf ein Foto oder einen Namen.');
   }
 
