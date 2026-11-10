@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Datenschutz: Die Seite darf NUR Dateien von sich selbst laden (keine Verbindung ins Internet). -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Wahl">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#2b5fd9">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="stylesheet" href="css/app.css">
+  <title>Klassensprecherwahl</title>
+</head>
+<body>
+  <div id="testbanner" class="testbanner" hidden>TESTWAHL – diese Stimmen zählen nicht</div>
+  <main id="app"></main>
+  <script src="js/dom.js"></script>
+  <script src="js/logic.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/security.js"></script>
+  <script src="js/qr.js"></script>
+  <script src="js/link.js"></script>
+  <script src="js/reveal.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

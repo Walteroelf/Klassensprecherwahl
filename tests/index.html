@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Tests der Zähllogik</title>
+  <style>
+    body { font: 18px -apple-system, Arial, sans-serif; padding: 20px; }
+    .ok { color: #11693a; } .fail { color: #c62828; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <!--
+    Test-Seite für den Browser: Öffne tests/index.html über den lokalen Server
+    (z. B. http://localhost:8000/tests/). Dieselbe Testdatei läuft auch mit Node
+    ("node --test tests/"). Hier ersetzt eine kleine Nachbildung die Node-Bausteine.
+  -->
+  <h1>Tests der Zähllogik</h1>
+  <p id="summary">läuft …</p>
+  <ul id="out"></ul>
+  <script src="../js/logic.js"></script>
+  <script>
+    var results = [];
+    function eq(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+    var shimAssert = {
+      ok: function (v, m) { if (!v) throw new Error(m || 'nicht wahr'); },
+      strictEqual: function (a, b) { if (a !== b) throw new Error('erwartet ' + b + ', erhalten ' + a); },
+      notStrictEqual: function (a, b) { if (a === b) throw new Error('sollte verschieden sein: ' + a); },
+      deepStrictEqual: function (a, b) { if (!eq(a, b)) throw new Error('erwartet ' + JSON.stringify(b) + ', erhalten ' + JSON.stringify(a)); },
+      throws: function (fn, re) {
+        try { fn(); } catch (e) { if (re && !re.test(e.message)) throw new Error('falsche Fehlermeldung: ' + e.message); return; }
+        throw new Error('es wurde kein Fehler geworfen');
+      }
+    };
+    function shimTest(name, fn) {
+      try { fn(); results.push([name, null]); } catch (e) { results.push([name, e.message]); }
+    }
+    function require(name) {
+      if (name === 'node:test') return shimTest;
+      if (name === 'node:assert') return shimAssert;
+      return window.Logic;
+    }
+  </script>
+  <script src="logic.test.js"></script>
+  <script>
+    var out = document.getElementById('out'), failed = 0;
+    results.forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = r[1] ? 'fail' : 'ok';
+      li.textContent = (r[1] ? '✗ ' : '✓ ') + r[0] + (r[1] ? ' – ' + r[1] : '');
+      if (r[1]) failed++;
+      out.appendChild(li);
+    });
+    document.getElementById('summary').textContent =
+      failed ? failed + ' von ' + results.length + ' Tests FEHLGESCHLAGEN' : 'Alle ' + results.length + ' Tests bestanden';
+    document.title = failed ? 'FEHLER' : 'ALLE OK';
+  </script>
+</body>
+</html>
