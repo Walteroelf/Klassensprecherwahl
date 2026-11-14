@@ -73,12 +73,16 @@ Das **Hauptgerät zählt alle Stimmen**. Jede Kabine ist nur eine Eingabe: Sie b
 Die Geräte verbinden sich **direkt** (WebRTC), ohne Server im Internet. Alle müssen im **selben WLAN** sein.
 Übertragen werden: die Wahl (Namen, Fotos, Einstellungen), „freischalten“/„sperren“ und der **Stimmzettel** einer Kabine. Gespeichert werden am Hauptgerät nur Zähler pro Kandidat: keine Zeit, keine Reihenfolge, keine Zuordnung zu Kabine oder Kind.
 
-**Jede Kabine einmal verbinden:**
+**Jede Kabine einmal verbinden (am einfachsten):**
 
 1. **Hauptgerät:** Bei Schritt 2 auf *Kabinen verbinden und Wahl durchführen* tippen, dann bei einer Kabine auf **Verbinden**. Es erscheint ein QR-Code.
-2. **iPad:** App öffnen → *Wahlkabine* → **Kamera starten** → auf den QR-Code des Hauptgeräts richten.
-3. **iPad:** Zeigt jetzt einen eigenen QR-Code. Den iPad mit dem Bildschirm vor die **Kamera des Hauptgeräts** halten (dort **Kamera starten** tippen).
+2. **iPad:** Die normale **Kamera-App** auf den QR-Code richten und den Link antippen. Safari öffnet sich, und das iPad ist sofort die Wahlkabine. Es zeigt gleich seinen eigenen QR-Code.
+3. **iPad:** Den iPad mit dem Bildschirm vor die **Kamera des Hauptgeräts** halten (dort **Kamera starten** tippen).
 4. Sobald „Kabine N verbunden“ erscheint, ist die Wahl auf der Kabine angekommen. Das iPad zeigt den gesperrten Wartebildschirm.
+
+Dieser Weg braucht beim iPad **Internet** (die Seite wird über den Link geladen) und läuft in Safari statt in der installierten App. Die Kabine speichert nichts, das ist kein Nachteil. Den Geführten Zugriff kannst du auch in Safari nutzen.
+
+**Ohne Internet (installierte App):** Auf dem iPad die App vom Home-Bildschirm öffnen → *Als Wahlkabine verwenden* → **Kamera starten** → auf den QR-Code des Hauptgeräts richten. Danach wie oben ab Schritt 3.
 
 Hat ein Gerät keine Kamera, geht es auch mit Text: Unter **Ohne Kamera** den Text kopieren und einfügen.
 

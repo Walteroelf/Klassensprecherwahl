@@ -38,7 +38,8 @@
     return 'K0.' + toB64u(raw);
   }
   async function unpack(text) {
-    var m = /^(K[01])\.([A-Za-z0-9_-]+)$/.exec(String(text).replace(/\s+/g, ''));
+    // erlaubt den reinen Text oder einen Link mit "#join=…" am Ende
+      var m = /(?:^|#join=)(K[01])\.([A-Za-z0-9_-]+)$/.exec(String(text).replace(/\s+/g, ''));
     if (!m) throw new Error('Das ist kein gültiger Verbindungstext.');
     var bytes = fromB64u(m[2]);
     if (m[1] === 'K1') {

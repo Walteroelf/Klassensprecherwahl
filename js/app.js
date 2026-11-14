@@ -1014,7 +1014,9 @@
 
     var scanner = null, timeout = null;
     var cv = h('canvas', { class: 'qr big' });
-    QR.toCanvas(cv, offer, 5);
+    // Der QR-Code enthält einen Link: Die Kamera-App des iPad öffnet damit direkt die Wahlkabine in Safari.
+    var joinUrl = location.href.split('#')[0].split('?')[0] + '#join=' + offer;
+    QR.toCanvas(cv, joinUrl, 5);
     var answer = h('textarea', { placeholder: 'Text der Kabine hier einfügen' });
     var status = h('p', { class: 'muted' }, '');
     var video = h('video', { class: 'scan', playsinline: true, muted: true, hidden: true });
@@ -1048,7 +1050,7 @@
       h('div', { class: 'pair-grid' },
         h('div', { class: 'card stepcard' },
           h('h2', {}, h('span', { class: 'num' }, '1'), 'Kabine scannt diesen Code'),
-          h('p', {}, 'Am iPad: App öffnen → „Wahlkabine“ → „Kamera starten“ → auf diesen Code richten.'),
+          h('p', {}, 'Am iPad: die normale Kamera-App auf diesen Code richten und den Link antippen. Safari öffnet sich und zeigt gleich den Antwort-Code. (Alternativ in der App: „Wahlkabine“ → „Kamera starten“.)'),
           cv,
           h('details', {}, h('summary', {}, 'Ohne Kamera am iPad: Text anzeigen'), h('textarea', { readonly: true }, offer))),
         h('div', { class: 'card stepcard' },
@@ -1090,7 +1092,7 @@
     if (cur && cur.remote && kab.link.isOpen()) kabineLocked(); else { cur = null; kabineConnectView(); }
   }
 
-  function kabineConnectView() {
+  function kabineConnectView(initialOffer) {
     ensureKab();
     var scanner = null;
     var video = h('video', { class: 'scan', playsinline: true, muted: true, hidden: true });
@@ -1136,6 +1138,7 @@
     }
 
     Dom.mount(area, startCard());
+    if (typeof initialOffer === 'string') gotOffer(initialOffer);      // Aufruf über den QR-Link: gleich antworten
     show('pair',
       h('div', { class: 'topbar' }, h('h1', {}, '🗳️ Wahlkabine verbinden'),
         h('button', { class: 'btn btn-secondary btn-small', onclick: function () { stop(); kab.link.close(); leaveToStart(); } }, 'Abbrechen')),
@@ -1572,6 +1575,14 @@
     try {
       if (navigator.storage && navigator.storage.persist) navigator.storage.persist();  // Speicher vor automatischem Aufräumen schützen
       await loadAll();
+      // Aufruf über den QR-Link des Hauptgeräts („…#join=Code“): dieses Gerät wird gleich zur Wahlkabine
+      if (/^#join=K[01]\./.test(location.hash)) {
+        var offerText = location.hash.slice(6);
+        history.replaceState(null, '', location.pathname + location.search);
+        settings.role = 'kabine';                 // nur im Arbeitsspeicher, nichts wird gespeichert
+        kabineConnectView(offerText);
+        return;
+      }
       // Nur die installierte App (Home-Bildschirm) startet direkt in ihrer Rolle.
       // In einem normalen Browser-Tab (z. B. am Laptop) kommt immer die Startauswahl.
       var installed = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);

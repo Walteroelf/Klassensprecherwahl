@@ -4,7 +4,7 @@
  * Danach startet die App ohne Internet. Hier liegen nur Programmdateien, keine Wahldaten.
  * Bei einer neuen App-Version bitte die Nummer unten erhöhen.
  */
-var CACHE = 'klassensprecherwahl-v17';
+var CACHE = 'klassensprecherwahl-v18';
 var FILES = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/dom.js', 'js/logic.js', 'js/db.js', 'js/security.js', 'js/qr.js', 'js/qrscan.js', 'js/link.js', 'js/reveal.js', 'js/export.js', 'js/app.js', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'
