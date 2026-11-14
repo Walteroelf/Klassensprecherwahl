@@ -60,7 +60,7 @@ Ein iPad für die Kinder wird über den kleinen Knopf **Als Wahlkabine verwenden
 
 Das Hauptgerät führt dich in **drei Schritten**; oben steht immer „Als Nächstes: …“.
 
-1. **Wahl einrichten:** Neue Wahl anlegen mit Titel, Modus, Kandidaten mit Foto (Kamera oder Mediathek), optional Wählerliste (ein Name pro Zeile). Die **Wählerzahl ergibt sich automatisch aus der Liste**. Ohne Liste gibt es keine Obergrenze, und du schließt die Wahl selbst ab. Neue Kandidaten erscheinen oben in der Liste; im Gruppenmodus wählst du die Gruppe mit Knöpfen nebeneinander. Die Gruppen-Einstellung erscheint nur im Modus „Eine Stimme je Gruppe“. Standard sind zwei Gruppen (Mädchen, Jungen); eine dritte und vierte Gruppe lassen sich optional hinzufügen.
+1. **Wahl einrichten:** Neue Wahl anlegen mit Titel, Modus, Kandidaten mit Foto (Kamera oder Mediathek), die **Wählerzahl (optional)**. Ohne Zahl gibt es keine Obergrenze, und du schließt die Wahl selbst ab. Wenn du eine Wählerliste anlegst (ein Name pro Zeile), wird die Zahl **automatisch** auf die Zahl der Zeilen gesetzt. Neue Kandidaten erscheinen oben in der Liste; im Gruppenmodus wählst du die Gruppe mit Knöpfen nebeneinander. Die Gruppen-Einstellung erscheint nur im Modus „Eine Stimme je Gruppe“. Standard sind zwei Gruppen (Mädchen, Jungen); eine dritte und vierte Gruppe lassen sich optional hinzufügen.
 2. **Kinder wählen lassen:** *Kabinen verbinden und Wahl durchführen* (siehe Abschnitt 5).
 3. **Wahl abschließen:** Das Ergebnis ist zunächst **verdeckt**. Du legst fest, welche Plätze gezeigt werden (nur der Sieger, Platz 1 bis 2, 1 bis 3 oder alle), und startest den Countdown. Die Auswahl gilt auch für PDF und Bild. Alle Zahlen siehst nur du über *Alle Zahlen ansehen*. Dort stehen auch Gleichstand und Stichwahl.
 
@@ -149,7 +149,8 @@ Danach sind Wahlen, Kandidaten, Fotos, Wählerlisten, Stimmen, Protokolle, Einst
 - *Ergebnis-Countdown starten* im Ergebnis am Hauptgerät: Die Plätze werden von hinten nach vorn enthüllt, jeweils per Tippen auf **Weiter**. Der gerade aufgedeckte Platz steht groß oben im Bild, der Weiter-Knopf bleibt unten sichtbar, gescrollt werden muss nicht. Mit **Alle sofort zeigen** überspringst du den Countdown.
 
 **Export für das Klassenbuch**
-- Im Ergebnis: **Als PDF** oder **Als Bild**. Das iPad öffnet das Teilen-Menü (Dateien, Drucken, Mail …). Der Export enthält nur Titel, Datum, Kandidaten und Summen, niemals Einzelstimmen. Das PDF enthält die Seite als Bild.
+- Im Ergebnis: **PDF speichern** oder **Bild speichern** legt die Datei lokal ab. Am Mac in Chrome oder Edge öffnet sich ein Speichern-Fenster mit freier Ortswahl (z. B. Schreibtisch), in Safari landet die Datei im Ordner „Downloads“, am iPad in der App „Dateien“. **PDF teilen oder drucken …** öffnet das Teilen-Menü (AirDrop, Mail, Drucken).
+- Der Export enthält Titel, Datum, Kandidaten **mit Foto** und Summen, nur für die gewählten Plätze, niemals Einzelstimmen. Das PDF enthält die Seite als Bild.
 
 **Barrierefreiheit** (Lehrerbereich → *Weitere Einstellungen* → *Anzeige und Vorlesen*)
 - **Große Schrift** und **Hoher Kontrast** gelten für die ganze App.

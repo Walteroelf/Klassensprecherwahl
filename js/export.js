@@ -1,7 +1,7 @@
 /*
  * export.js – Ergebnis als Bild oder PDF für das Klassenbuch
  * -----------------------------------------------------------
- * Der Export enthält NUR: Titel, Datum, Kandidaten mit Summen und die Enthaltungen.
+ * Der Export enthält NUR: Titel, Datum, Kandidaten (mit Foto) mit Summen und ggf. die Enthaltungen.
  * Niemals Einzelstimmen. Alles wird lokal auf dem Gerät erzeugt.
  * results = [{ title, abstentions, rows: [{ name, votes, rank }] }]
  */
@@ -10,7 +10,24 @@
   var W = 1240, H = 1754;          // A4 bei 150 dpi
   var FONT = '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif';
 
-  function render(title, dateMs, results) {
+  function loadImg(src) {
+    return new Promise(function (resolve) {
+      var i = new Image();
+      i.onload = function () { resolve(i); };
+      i.onerror = function () { resolve(null); };
+      i.src = src;
+    });
+  }
+
+  // Seite zeichnen. Enthält die Ergebnisse (rows) Fotos (row.photo), werden sie neben den Namen gezeigt.
+  async function render(title, dateMs, results) {
+    var withPhotos = results.some(function (r) { return r.rows.some(function (x) { return x.photo; }); });
+    var imgs = {};
+    if (withPhotos) {
+      var jobs = [];
+      results.forEach(function (r, b) { r.rows.forEach(function (x, i) { if (x.photo) jobs.push(loadImg(x.photo).then(function (im) { imgs[b + '-' + i] = im; })); }); });
+      await Promise.all(jobs);
+    }
     var c = document.createElement('canvas');
     c.width = W; c.height = H;
     var g = c.getContext('2d');
@@ -30,29 +47,42 @@
     // Zeilenhöhe so wählen, dass alles auf die Seite passt
     var lines = 0;
     results.forEach(function (r) { lines += r.rows.length + (r.abstentions != null ? 1 : 0) + (r.title ? 2 : 1); });
-    var rowH = Math.max(34, Math.min(72, (H - 275 - 200) / Math.max(lines, 1)));
-    var fs = Math.round(rowH * 0.55);
+    var avail = (H - 275 - 200) / Math.max(lines, 1);
+    var rowH = withPhotos ? Math.max(56, Math.min(120, avail)) : Math.max(34, Math.min(72, avail));
+    var fs = Math.round(rowH * (withPhotos ? 0.42 : 0.55));
+    var ps = Math.round(rowH * 0.86);                      // Fotogröße
+    var nameX = withPhotos ? 170 + ps + 24 : 190;
     var y = 275 + rowH * 1.1;
 
-    results.forEach(function (r) {
+    results.forEach(function (r, b) {
       if (r.title) {
         g.textAlign = 'left'; g.fillStyle = '#1e46a6'; g.font = '700 ' + Math.round(fs * 1.15) + 'px ' + FONT;
         g.fillText('Gruppe ' + r.title, 100, y); y += rowH * 1.1;
       }
-      r.rows.forEach(function (row) {
+      r.rows.forEach(function (row, i) {
         var win = row.rank === 1 && row.votes > 0;
+        if (withPhotos) {
+          var cy = y - fs * 0.35, x0 = 170, y0 = cy - ps / 2, im = imgs[b + '-' + i];
+          g.save();
+          g.beginPath();
+          if (g.roundRect) g.roundRect(x0, y0, ps, ps, ps * 0.18); else g.rect(x0, y0, ps, ps);
+          g.clip();
+          if (im) g.drawImage(im, x0, y0, ps, ps);
+          else { g.fillStyle = '#e3e8f4'; g.fillRect(x0, y0, ps, ps); g.fillStyle = '#1e46a6'; g.font = '700 ' + Math.round(ps * 0.5) + 'px ' + FONT; g.textAlign = 'center'; g.fillText(row.name.charAt(0).toUpperCase(), x0 + ps / 2, y0 + ps * 0.68); }
+          g.restore();
+        }
         g.fillStyle = win ? '#11693a' : '#111';
         g.font = (win ? '700 ' : '400 ') + fs + 'px ' + FONT;
         g.textAlign = 'left';
         g.fillText(row.rank + '.', 100, y);
-        g.fillText(row.name, 190, y);
+        g.fillText(row.name, nameX, y);
         g.textAlign = 'right';
         g.fillText(String(row.votes), W - 100, y);
         y += rowH;
       });
       if (r.abstentions != null) {            // bei begrenzter Platzzahl werden die Enthaltungen nicht gezeigt
         g.fillStyle = '#555'; g.font = 'italic 400 ' + fs + 'px ' + FONT; g.textAlign = 'left';
-        g.fillText('Enthaltungen', 190, y);
+        g.fillText('Enthaltungen', nameX, y);
         g.textAlign = 'right'; g.fillText(String(r.abstentions), W - 100, y);
         y += rowH * 0.4;
       }
@@ -95,12 +125,20 @@
     return new Blob(parts, { type: 'application/pdf' });
   }
 
-  // Speichern: Teilen-Menü des iPad (Dateien, Drucken, Mail …), sonst normaler Download
-  async function save(blob, filename, title) {
-    var file = new File([blob], filename, { type: blob.type });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: title }); return 'shared'; }
-      catch (e) { if (e && e.name === 'AbortError') return 'cancel'; }
+  // Lokal speichern. Wo der Browser es kann (Chrome, Edge am Mac), öffnet sich ein Speichern-Fenster mit freier
+  // Ortswahl (z. B. Schreibtisch). Sonst startet ein normaler Download (Safari: Ordner „Downloads“, am iPad „Dateien“).
+  async function saveLocal(blob, filename) {
+    if (window.showSaveFilePicker) {
+      try {
+        var ext = filename.split('.').pop();
+        var handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: ext === 'pdf' ? 'PDF-Dokument' : 'PNG-Bild', accept: { [blob.type]: ['.' + ext] } }]
+        });
+        var w = await handle.createWritable();
+        await w.write(blob); await w.close();
+        return 'saved';
+      } catch (err) { if (err && err.name === 'AbortError') return 'cancel'; }
     }
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -109,6 +147,15 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
     return 'download';
   }
+  // Teilen-Menü des Geräts (Dateien, Drucken, Mail, AirDrop …)
+  async function share(blob, filename, title) {
+    var file = new File([blob], filename, { type: blob.type });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: title }); return 'shared'; }
+      catch (err) { if (err && err.name === 'AbortError') return 'cancel'; }
+    }
+    return saveLocal(blob, filename);
+  }
 
-  root.ExportDoc = { render: render, toPngBlob: toPngBlob, toPdfBlob: toPdfBlob, save: save };
+  root.ExportDoc = { render: render, toPngBlob: toPngBlob, toPdfBlob: toPdfBlob, saveLocal: saveLocal, share: share };
 })(window);

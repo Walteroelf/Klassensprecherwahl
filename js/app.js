@@ -487,15 +487,8 @@
       return box;
     }
     var names = function () { return (ctx.voters || '').split('\n').map(function (x) { return x.trim(); }).filter(Boolean); };
-    var countEl = h('p', { class: 'voter-count' }, '');
-    function updCount() {
-      var n = names().length;
-      if (n) countEl.textContent = 'Wähler: ' + n + ' (wird automatisch gezählt)';
-      else if (!ctx.votersTouched && e.voterCount > 0) countEl.textContent = 'Wähler: ' + e.voterCount + ' (ohne Namensliste)';
-      else countEl.textContent = 'Noch keine Wähler eingetragen. Dann gibt es keine Obergrenze, und du schließt die Wahl selbst ab.';
-    }
-    updCount();
-
+    var numInput = h('input', { type: 'number', inputmode: 'numeric', min: '1', placeholder: 'leer = unbekannt', value: e.voterCount || '',
+      oninput: function (ev) { e.voterCount = parseInt(ev.target.value, 10) || 0; } });
     show('setup',
       h('div', { class: 'topbar' }, h('h1', {}, isNew ? 'Neue Wahl' : 'Wahl bearbeiten')),
 
@@ -554,10 +547,16 @@
           h('label', { class: 'field' }, 'Zweite Seite in der Wahlkabine'), groupSelect(1)) : null) : null,
 
       h('h2', {}, 'Wähler'),
-      h('label', { class: 'field' }, 'Wählerliste: ein Name pro Zeile (optional)'),
-      h('textarea', { oninput: function (ev) { ctx.voters = ev.target.value; ctx.votersTouched = true; e.voterCount = names().length; updCount(); } }, ctx.voters),
-      countEl,
-      h('p', { class: 'muted' }, 'Die Zahl der Wähler ergibt sich aus der Liste. Mit Liste werden nie mehr Stimmzettel angenommen, als Namen eingetragen sind, und du kannst die Kinder beim Wählen abhaken. Die Liste ist von den Stimmen getrennt und wird beim Abschluss der Wahl gelöscht.'),
+      h('label', { class: 'field' }, 'Anzahl der Wähler (optional)'),
+      numInput,
+      h('p', { class: 'muted' }, 'Wenn du die Zahl nicht kennst, lass das Feld leer: Dann gibt es keine Obergrenze, und du schließt die Wahl selbst ab. Ist eine Zahl eingetragen, werden nie mehr Stimmzettel angenommen.'),
+      h('label', { class: 'field' }, 'Wählerliste (optional, ein Name pro Zeile)'),
+      h('textarea', { oninput: function (ev) {
+        ctx.voters = ev.target.value;
+        var n = names().length;
+        if (n) { e.voterCount = n; numInput.value = String(n); }       // Zahl der Zeilen = Zahl der Wähler
+      } }, ctx.voters),
+      h('p', { class: 'muted' }, 'Sobald du Namen einträgst, wird die Anzahl oben automatisch gesetzt. Die Liste dient zum Abhaken, ist von den Stimmen getrennt und wird beim Abschluss der Wahl gelöscht.'),
 
       h('div', { class: 'spacer' }),
       h('div', { class: 'row' },
@@ -568,7 +567,7 @@
   async function saveSetup(e, ctx, isNew) {
     e.title = (e.title || '').trim() || 'Klassensprecherwahl';
     var names = (ctx.voters || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
-    if (names.length || ctx.votersTouched) e.voterCount = names.length;     // Wählerzahl = Zahl der Namen (0 = unbekannt)
+    if (names.length) e.voterCount = names.length;     // mit Liste: Wählerzahl = Zahl der Namen
     await DB.put('elections', e);
     if (isNew) await DB.put('tallies', Object.assign({ id: e.id }, L.newTally()));
     var oldDone = {};
@@ -1462,9 +1461,11 @@
         cur.practice ? null : h('div', {},
           h('div', { class: 'spacer' }),
           h('div', { class: 'row' },
-            h('button', { class: 'btn btn-secondary', onclick: function () { exportResult('pdf'); } }, '📄 Als PDF'),
-            h('button', { class: 'btn btn-secondary', onclick: function () { exportResult('png'); } }, '🖼️ Als Bild')),
-          h('p', { class: 'muted' }, 'Der Export enthält nur Titel, Datum, Kandidaten und Summen.')),
+            h('button', { class: 'btn btn-secondary', onclick: function () { exportResult('pdf', 'save'); } }, '📄 PDF speichern'),
+            h('button', { class: 'btn btn-secondary', onclick: function () { exportResult('png', 'save'); } }, '🖼️ Bild speichern')),
+          h('div', { class: 'spacer' }),
+          h('button', { class: 'btn btn-secondary btn-small', onclick: function () { exportResult('pdf', 'share'); } }, '↗ PDF teilen oder drucken …'),
+          h('p', { class: 'muted' }, 'Gespeichert wird auf dem Gerät, am Mac mit Auswahl des Ordners (z. B. Schreibtisch), am iPad in „Dateien“. Der Export enthält Titel, Datum, Kandidaten mit Foto und Summen, nur für die gewählten Plätze.')),
         cur.practice ? h('div', {},
           h('div', { class: 'spacer' }),
           h('button', { class: 'btn btn-danger', onclick: discardPractice }, 'Probemodus beenden und Teststimmen löschen')) : null),
@@ -1526,14 +1527,17 @@
       Reveal.create(data, null, { footer: function () { return tiesBlock(res); } }));
   }
 
-  async function exportResult(kind) {
+  // kind: 'pdf' oder 'png'; how: 'save' (lokal speichern) oder 'share' (Teilen-Menü)
+  async function exportResult(kind, how) {
     var e = cur.e;
-    var data = plainResults(L.computeResults(e, cur.t), false, settings.showPlaces);
-    var canvas = ExportDoc.render(e.title, e.protocol ? e.protocol.closedAt : Date.now(), data);
+    var data = plainResults(L.computeResults(e, cur.t), true, settings.showPlaces);     // mit Fotos
     var name = e.title.replace(/[^A-Za-z0-9ÄÖÜäöüß-]+/g, '_');
     try {
+      var canvas = await ExportDoc.render(e.title, e.protocol ? e.protocol.closedAt : Date.now(), data);
       var blob = kind === 'pdf' ? ExportDoc.toPdfBlob(canvas) : await ExportDoc.toPngBlob(canvas);
-      await ExportDoc.save(blob, name + (kind === 'pdf' ? '.pdf' : '.png'), e.title);
+      var file = name + (kind === 'pdf' ? '.pdf' : '.png');
+      var r = how === 'share' ? await ExportDoc.share(blob, file, e.title) : await ExportDoc.saveLocal(blob, file);
+      if (r === 'download') await info('Gespeichert', 'Die Datei „' + file + '“ liegt im Ordner „Downloads“ (am iPad in der App „Dateien“).');
     } catch (err) { await info('Export nicht möglich', err.message); }
   }
 
