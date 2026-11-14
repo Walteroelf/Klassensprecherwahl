@@ -1,24 +1,23 @@
 # Klassensprecherwahl
 
-**App öffnen:** https://walteroelf.github.io/Klassensprecherwahl/
+Eine kleine Wahl-App für iPads und Mac. Sie läuft komplett im Browser, ohne Internet, ohne Server und ohne Tracking.
+Fotos, Namen und Stimmen bleiben ausschließlich auf deinen Geräten im Klassenzimmer. Die Stimmen werden nur auf dem Hauptgerät gezählt.
 
-Eine kleine Wahl-App für das iPad. Sie läuft komplett im Browser, ohne Internet, ohne Server und ohne Tracking.
-Fotos, Namen und Stimmen bleiben ausschließlich auf dem iPad.
-
-> **Stand: Stufe 2** (Einstellungen mit Code, Tafel, Schutzmechanismen).
-> Probemodus, Stichwahl, Ergebnis-Countdown, Export und Barrierefreiheit folgen in Stufe 3.
+> **Stand: Stufe 3** (alle geplanten Funktionen): Kern, Code, Hauptgerät mit Wahlkabinen, dazu Probemodus, Stichwahl,
+> Ergebnis-Countdown, Export, Barrierefreiheit, Vorlesen und Kandidaten-Vorschau.
 
 ## Inhalt dieser Anleitung
 
 1. [Ausprobieren am Mac](#1-ausprobieren-am-mac)
 2. [Auf das iPad bringen und installieren](#2-auf-das-ipad-bringen-und-installieren)
-3. [Erster Start und Code](#3-erster-start-und-code)
-4. [Wahl durchführen ohne Tafel](#4-wahl-durchführen-ohne-tafel)
-5. [Wahl durchführen mit Tafel](#5-wahl-durchführen-mit-tafel)
+3. [Startbildschirm, Code und Rollen](#3-startbildschirm-code-und-rollen)
+4. [Eine Wahl vorbereiten](#4-eine-wahl-vorbereiten-hauptgerät)
+5. [Wahl mit bis zu drei Wahlkabinen](#5-wahl-durchführen-mit-bis-zu-drei-wahlkabinen)
 6. [Geführten Zugriff einrichten (Wahlkabine sichern)](#6-geführten-zugriff-einrichten)
 7. [Schutz vor Manipulation](#7-schutz-vor-manipulation)
 8. [Alles löschen](#8-alles-löschen)
 9. [Wenn etwas nicht klappt](#9-wenn-etwas-nicht-klappt)
+10. [Extras (Stufe 3)](#10-extras-stufe-3)
 
 ## 1. Ausprobieren am Mac
 
@@ -28,8 +27,8 @@ Im Ordner der App im Terminal:
 python3 -m http.server 8000
 ```
 
-Dann im Browser `http://localhost:8000` öffnen (die Tafel unter `http://localhost:8000/board.html`).
-Die automatischen Tests laufen unter `http://localhost:8000/tests/` und zeigen „Alle … Tests bestanden“.
+Dann im Browser `http://localhost:8000` öffnen. Zum Ausprobieren der Kabinen am Mac das Hauptgerät unter `localhost:8000` und die Kabine unter `127.0.0.1:8000` öffnen (getrennte Speicher, Verbinden per Text).
+Die automatischen Tests laufen unter `http://localhost:8000/tests/` (Zähllogik) und `http://localhost:8000/tests/qrscan.html` (QR-Leser) und zeigen „Alle … Tests bestanden“.
 Wer Node.js hat, kann sie auch mit `node --test tests/` starten.
 
 ## 2. Auf das iPad bringen und installieren
@@ -41,50 +40,58 @@ Die Installation braucht einmalig **https**. Empfohlen: GitHub Pages.
 3. Auf dem iPad in **Safari** die Pages-Adresse öffnen (mit Internet, einmalig).
 4. Teilen-Symbol → **Zum Home-Bildschirm**. Ab jetzt startet die App auch ohne Internet und im Vollbild.
 
-Die App selbst enthält keine Verbindung zu GitHub und lädt nichts nach. Eine Sicherheitsregel in `index.html` und `board.html` verbietet das ausdrücklich.
+Die App selbst enthält keine Verbindung zu GitHub und lädt nichts nach. Eine Sicherheitsregel in `index.html` verbietet das ausdrücklich.
 
 **Neue Version einspielen:** In `sw.js` die Nummer bei `CACHE` erhöhen, sonst zeigt das iPad weiter die alte Version.
 
-## 3. Erster Start und Code
+## 3. Startbildschirm, Code und Rollen
 
-- Beim ersten Start legst du deinen **sechsstelligen Code** fest (zweimal eingeben). Er wird nie im Klartext gespeichert, nur als Hash mit Salt.
-- Nach dem Start zeigt die App immer die **Wahlkabine** mit ruhigem Wartebildschirm. Es gibt keinen sichtbaren Link in die Einstellungen.
-- **Lehrerbereich öffnen:** Etwa **2 Sekunden lang auf das kleine Wahlurnen-Symbol oben links** drücken, danach den Code eingeben.
-- Nach mehreren falschen Eingaben sperrt das Zahlenfeld (ab dem 3. Fehlversuch 1, 2, 4, 8 … Minuten, höchstens 30). Die Sperre bleibt auch nach einem Neuladen bestehen.
-- **Code vergessen?** Dann gibt es keinen Zurücksetzen-Knopf (sonst könnte ihn jeder benutzen). Einzige Lösung: in den iPad-Einstellungen unter Safari die Website-Daten löschen. Dabei gehen alle Wahlen verloren.
-- Den Code kannst du im Lehrerbereich unter **Sicherheit → Code ändern** ändern.
+Beim Start zeigt die App nur das **Hauptgerät** (Lehrkraft): Wahl einrichten, Kabinen verbinden, Kinder freischalten, Wahl abschließen, Ergebnis zeigen. Das kann ein Lehrer-iPad oder ein MacBook sein und lässt sich auf die Tafel spiegeln.
+Ein iPad für die Kinder wird über den kleinen Knopf **Als Wahlkabine verwenden** unten auf dem Startbildschirm zur Wahlkabine. Dort gibt es nur Wartebildschirm und Wahl, keine Einstellungen und keinen Code.
 
-## 4. Wahl durchführen ohne Tafel
+- Beim allerersten Öffnen des Hauptgeräts legst du deinen **sechsstelligen Code** fest (zweimal eingeben). Er wird nie im Klartext gespeichert, nur als Hash mit Salt. Die Wahlkabinen brauchen keinen Code.
+- Die **installierte App** (vom Home-Bildschirm) startet direkt in ihrer Rolle: als Wahlkabine sofort mit dem Verbinden-Bildschirm. In einem normalen Browser-Tab erscheint immer die Startauswahl.
+- **Wahlkabine beenden:** Etwa **2 Sekunden auf das kleine Wahlurnen-Symbol oben links** drücken und bestätigen. Auf dem Wartebildschirm steht dazu ein kleiner Hinweis (abschaltbar unter *Weitere Einstellungen → Anzeige und Vorlesen*).
+- Nach mehreren falschen Code-Eingaben sperrt das Zahlenfeld (ab dem 3. Fehlversuch 1, 2, 4, 8 … Minuten, höchstens 30). Die Sperre bleibt auch nach einem Neuladen bestehen.
+- **Code vergessen?** Es gibt bewusst keinen Zurücksetzen-Knopf. Einzige Lösung: in den Safari-Einstellungen die Website-Daten löschen. Dabei gehen alle Wahlen dieses Geräts verloren.
+- Den Code änderst du unter *Weitere Einstellungen → Code ändern*. Eine **Kurzanleitung** steht auf der Seite „Meine Wahlen“.
 
-1. Lehrerbereich öffnen → **Neue Wahl anlegen**: Titel, Wahlmodus, Anzahl der Wähler, Kandidaten mit Foto (Kamera oder Mediathek), optional Wählerliste → **Speichern**.
-2. **Nächsten Wähler freischalten** → das Kind wählt (Foto antippen → **Ja, wählen**). Danach sperrt die Kabine sofort.
-3. Für den nächsten Wähler: wieder Logo lange drücken, Code eingeben, freischalten.
-4. Sind alle durch: **Wahl abschließen**. Erst jetzt erscheint das Ergebnis mit dem Wahlprotokoll.
-5. Das Ergebnis zeigst du nur auf dem iPad, bei Bedarf per AirPlay oder Bildschirmspiegelung auf die Tafel.
+## 4. Eine Wahl vorbereiten (Hauptgerät)
 
-Wichtig: Mit **Zur Wahlkabine (sperren)** machst du eine Wahl zur aktiven Wahl der Kabine. Die Kabine zeigt immer die Wahl, die du zuletzt dort abgelegt hast.
+Das Hauptgerät führt dich in **drei Schritten**; oben steht immer „Als Nächstes: …“.
 
-## 5. Wahl durchführen mit Tafel
+1. **Wahl einrichten:** Neue Wahl anlegen mit Titel, Modus, Kandidaten mit Foto (Kamera oder Mediathek), Wählerzahl (**optional**: leer lassen, wenn du sie nicht kennst, dann gibt es keine Obergrenze und du schließt die Wahl selbst ab), optional Wählerliste. Die Gruppen-Einstellung erscheint nur im Modus „Eine Stimme je Gruppe“.
+2. **Kinder wählen lassen:** *Kabinen verbinden und Wahl durchführen* (siehe Abschnitt 5).
+3. **Wahl abschließen:** Erst jetzt erscheint das Ergebnis mit Wahlprotokoll, Countdown, PDF/Bild und bei Gleichstand die Stichwahl.
 
-Die Tafel verbindet sich **direkt** mit dem iPad (WebRTC), ohne Server im Internet. Beide Geräte müssen im **selben WLAN** sein.
-Es fließen nur Steuersignale und Zähler: „Nächster Wähler“, „Rückgängig“, die Phase („bereit“, „stimmt ab“, „Abgestimmt“) und die Zahl der abgegebenen Stimmen. **Nie** Einzelstimmen. Erst nach dem Abschluss bekommt die Tafel die Summen.
+Ohne zweites Gerät geht es auch: Mit *Dieses Gerät als Wahlkabine* wird das Hauptgerät selbst zur gesperrten Kabine. Dort steht dann die Zahl der bisher abgegebenen Stimmzettel. Pro Kind: Wahlurnen-Symbol oben links 2 Sekunden halten, Code eingeben, *Nächstes Kind freischalten*.
 
-**Einmalig koppeln:**
+## 5. Wahl durchführen mit bis zu drei Wahlkabinen
 
-1. Auf dem iPad: Lehrerbereich → Wahl öffnen → Haken bei **Tafel verwenden** → **Tafel verbinden**.
-2. Auf der Tafel im Browser die Seite `board.html` der App öffnen. Sie zeigt einen QR-Code.
-3. Mit der **Kamera-App des iPad** den QR-Code scannen, auf den erkannten Text tippen und **Kopieren** wählen.
-4. In der Wahl-App den Text einfügen → **Antwort erzeugen**. Das iPad zeigt nun einen QR-Code und einen Text.
-5. Auf der Tafel die Antwort einlesen: **QR-Code mit der Tafel-Kamera scannen** (wenn die Tafel eine Kamera und einen passenden Browser hat) oder den **Antworttext einfügen**.
-6. Beide Geräte zeigen „verbunden“.
+Das **Hauptgerät zählt alle Stimmen**. Jede Kabine ist nur eine Eingabe: Sie bekommt die Kandidaten (nur im Arbeitsspeicher), wird einzeln freigeschaltet und schickt am Ende den Stimmzettel zurück. Nach jedem Kind sperrt sie sich, bis du sie am Hauptgerät wieder freischaltest. Die Kabinen zeigen nie ein Ergebnis.
 
-Warum nicht nur ein kurzer Code? Zwei Geräte ohne Server müssen ihre Netzwerkdaten austauschen. Die sind für einen kurzen Code zu lang. Der QR-Code ist die bequemste Art, sie zu übertragen.
+Die Geräte verbinden sich **direkt** (WebRTC), ohne Server im Internet. Alle müssen im **selben WLAN** sein.
+Übertragen werden: die Wahl (Namen, Fotos, Einstellungen), „freischalten“/„sperren“ und der **Stimmzettel** einer Kabine. Gespeichert werden am Hauptgerät nur Zähler pro Kandidat: keine Zeit, keine Reihenfolge, keine Zuordnung zu Kabine oder Kind.
 
-**Im Betrieb** zeigt die Tafel Titel, den großen Knopf **Nächster Wähler**, den Fortschrittsbalken (abgegeben / fehlen noch) und nach jeder Stimme nur das Wort **Abgestimmt**.
-Mit **Rückgängig** nimmst du eine Freischaltung zurück, wenn ein falscher Wähler aufgerufen wurde. Abgegebene Stimmen lassen sich nie zurücknehmen.
-Nach 2 Minuten ohne Berührung sperrt sich die Kabine von selbst, die Tafel warnt 20 Sekunden vorher.
+**Jede Kabine einmal verbinden:**
 
-Hinweise: Manche Schul-WLANs trennen Geräte voneinander („Client-Isolation“). Dann klappt die Verbindung nicht. Frag die Schul-IT oder nutze die Wahl ohne Tafel. Wird die Verbindung getrennt (z. B. iPad neu geladen), einfach noch einmal koppeln.
+1. **Hauptgerät:** Bei Schritt 2 auf *Kabinen verbinden und Wahl durchführen* tippen, dann bei einer Kabine auf **Verbinden**. Es erscheint ein QR-Code.
+2. **iPad:** App öffnen → *Wahlkabine* → **Kamera starten** → auf den QR-Code des Hauptgeräts richten.
+3. **iPad:** Zeigt jetzt einen eigenen QR-Code. Den iPad mit dem Bildschirm vor die **Kamera des Hauptgeräts** halten (dort **Kamera starten** tippen).
+4. Sobald „Kabine N verbunden“ erscheint, ist die Wahl auf der Kabine angekommen. Das iPad zeigt den gesperrten Wartebildschirm.
+
+Hat ein Gerät keine Kamera, geht es auch mit Text: Unter **Ohne Kamera** den Text kopieren und einfügen.
+
+**Im Betrieb** zeigt das Hauptgerät (z. B. auf der Tafel) den Fortschritt und für jede Kabine den Zustand: *frei*, *wählt gerade*, *sperrt gleich automatisch*, *hat gewählt*. Ein Kind aufrufen, bei einer freien Kabine auf **Kind freischalten** tippen. Die Reihenfolge der Fotos ist bei jeder Freischaltung zufällig.
+Mit **Rückgängig** nimmst du eine Freischaltung zurück, wenn das falsche Kind aufgerufen wurde. Abgegebene Stimmen lassen sich nie zurücknehmen.
+Nach 2 Minuten ohne Berührung sperrt sich eine Kabine von selbst. Insgesamt werden nie mehr Kabinen freigeschaltet, als Wähler eingetragen sind.
+Am Ende **Wahl abschließen** (am Hauptgerät, mit Sicherheitsabfrage). Die Kabinen zeigen dann „Die Wahl ist beendet“, das Ergebnis erscheint nur am Hauptgerät.
+
+Hinweise:
+- Die Kamera liest die Codes direkt in der App (kein Online-Dienst). Bei Erstnutzung fragt Safari einmalig nach dem Kamerazugriff: **Erlauben**.
+- Der **WLAN-Betrieb ist Pflicht** für die Wahl mit Kabinen. Manche Schul-WLANs trennen Geräte voneinander („Client-Isolation“), dann klappt es nicht. Frag die Schul-IT oder nutze die Wahl mit dem Hauptgerät als Kabine.
+- **Verbindung weg** (iPad eingeschlafen, App neu geladen): Die Kabine zeigt „Keine Verbindung“ und muss neu verbunden werden (Schritt 1 bis 3 für diese Kabine). Eine nicht abgeschickte Stimme geht dabei verloren, das Kind wählt nach erneutem Freischalten noch einmal. Eine Stimme zählt erst, wenn die Kabine „Danke“ zeigt.
+- Bei den iPads am besten die **automatische Sperre** ausschalten (Einstellungen → Anzeige & Helligkeit → Automatische Sperre → Nie) und den Geführten Zugriff nutzen (nächster Abschnitt).
 
 ## 6. Geführten Zugriff einrichten
 
@@ -118,29 +125,59 @@ Den Lehrerbereich der Wahl-App erreichst du auch im Geführten Zugriff über das
 
 ## 8. Alles löschen
 
-Lehrerbereich → Übersicht → ganz unten **Alles löschen**. Es gibt eine doppelte Sicherheitsabfrage mit erneuter Code-Eingabe.
+Lehrerbereich → *Weitere Einstellungen* → ganz unten **Alles löschen**. Es gibt eine doppelte Sicherheitsabfrage mit erneuter Code-Eingabe.
 Danach sind Wahlen, Kandidaten, Fotos, Wählerlisten, Stimmen, Protokolle, Einstellungen und der Code entfernt: die komplette Datenbank wird gelöscht, auch lokale Zwischenspeicher. Nur die Programmdateien für den Offline-Start bleiben (sie enthalten keine persönlichen Daten). Die App startet danach wieder mit der Code-Einrichtung.
 
 ## 9. Wenn etwas nicht klappt
 
 - **Foto-Aufnahme geht nicht:** In Safari/iPad-Einstellungen den Kamerazugriff erlauben.
-- **Tafel verbindet nicht:** Gleiches WLAN? Client-Isolation? Den Verbindungstext vollständig kopiert, ohne Leerzeichen am Rand? Beide Seiten neu laden und noch einmal koppeln.
+- **Kabine verbindet nicht:** Gleiches WLAN? Client-Isolation? Kamera erlaubt? Der QR-Code wird besser gelesen, wenn er groß und ruhig im Bild steht und der Bildschirm nicht spiegelt (Helligkeit hoch). Sonst „Ohne Kamera“ den Text kopieren. Beide Seiten neu laden und noch einmal koppeln.
 - **Alte Version auf dem iPad:** App vom Home-Bildschirm entfernen, in Safari die Seite neu öffnen und erneut zum Home-Bildschirm hinzufügen (oder `CACHE` in `sw.js` erhöhen).
+
+## 10. Extras (Stufe 3)
+
+**Probemodus** (Lehrerbereich → *Weitere Einstellungen* → *Probemodus mit Beispielkandidaten*, oder in einer Wahl unter *Mehr …* → *Probemodus mit diesen Kandidaten*)
+- Zeigt den Schülern den Ablauf. Solange er läuft, zeigt das Gerät ein orangefarbenes Banner **TESTWAHL**. Der Probemodus läuft nur auf dem Hauptgerät (ohne Kabinen).
+- Die Teststimmen leben nur im Arbeitsspeicher und werden nie in die echte Wahl oder in den Speicher geschrieben. Nach *Probemodus beenden* siehst du das Probeergebnis. Mit *Probemodus beenden und Teststimmen löschen* ist alles weg. Ein Neuladen beendet den Probemodus ebenfalls.
+
+**Stichwahl**
+- Bei Gleichstand (um jeden Platz mit mindestens einer Stimme, in Gruppenwahlen je Gruppe einzeln) erscheint im Ergebnis ein Knopf *Stichwahl starten*.
+- Die Stichwahl ist eine eigene Wahl nur mit den punktgleichen Kandidaten: eine Stimme pro Wähler, dieselbe Wählerzahl, eigene Zähler, dieselben Schutzregeln. Die Hauptwahl bleibt unverändert. Danach wie gewohnt in der Wahlkabine ablegen (*Zur Wahlkabine*).
+- Endet auch die Stichwahl unentschieden, kannst du erneut eine Stichwahl starten.
+
+**Ergebnis-Countdown**
+- *Ergebnis-Countdown starten* im Ergebnis am Hauptgerät: Die Plätze werden von hinten nach vorn enthüllt, jeweils per Tippen auf **Weiter**. Mit **Alle sofort zeigen** überspringst du den Countdown.
+
+**Export für das Klassenbuch**
+- Im Ergebnis: **Als PDF** oder **Als Bild**. Das iPad öffnet das Teilen-Menü (Dateien, Drucken, Mail …). Der Export enthält nur Titel, Datum, Kandidaten und Summen, niemals Einzelstimmen. Das PDF enthält die Seite als Bild.
+
+**Barrierefreiheit** (Lehrerbereich → *Weitere Einstellungen* → *Anzeige und Vorlesen*)
+- **Große Schrift** und **Hoher Kontrast** gelten für die ganze App.
+- **Vorlesen** liest Anweisungen, Namen und die Bestätigungsfrage vor. Es nutzt nur die Sprachausgabe des Geräts und nur auf dem Gerät gespeicherte deutsche Stimmen, keinen Online-Dienst. Fehlt eine deutsche Stimme, lässt sich die Option nicht einschalten: In den iPad-Einstellungen unter *Bedienungshilfen → Gesprochene Inhalte → Stimmen* eine deutsche Stimme laden. Bei eingeschaltetem Vorlesen hat jede Kandidatenkarte einen 🔊-Knopf.
+
+**Kandidaten-Vorschau**
+- In der Wahl, Schritt 1: *Kandidaten zeigen*. Jedes Kind prüft sein Foto und seinen Namen. Es wird nicht gewählt, und *Fertig* führt zurück in die gesperrte Kabine (nicht in den Lehrerbereich).
+
+**Wählerliste mit Abhaken**
+- Im Menü der Wahl hakst du ab, wer schon dran war. Die Liste ist von den Stimmen getrennt und wird beim Abschluss gelöscht.
+
+
 
 ## Dateien
 
 ```
-index.html        Startseite der iPad-App (mit Datenschutz-Sicherheitsregel)
-board.html        Tafelansicht
+index.html        Startseite der App (mit Datenschutz-Sicherheitsregel)
 css/app.css       Gestaltung
 js/dom.js         Hilfe zum Bauen der Bildschirme
 js/logic.js       Zähllogik (ohne Oberfläche, getestet)
 js/db.js          Lokale Speicherung (IndexedDB)
 js/security.js    Code-Hash, Sperrzeit
 js/qr.js          QR-Code-Erzeuger (lokal)
-js/link.js        Direkte Verbindung iPad–Tafel (WebRTC)
-js/app.js         iPad: Wahlkabine und Lehrerbereich
-js/board.js       Tafel
+js/qrscan.js      QR-Code-Leser für die Kamera (lokal)
+js/link.js        Direkte Verbindung Hauptgerät–Kabine (WebRTC)
+js/reveal.js      Ergebnis-Countdown
+js/export.js      Export als Bild oder PDF
+js/app.js         Hauptgerät und Wahlkabine
 sw.js, manifest.webmanifest, icons/   Offline-Betrieb und Home-Bildschirm
 tests/            Automatische Tests
 ```

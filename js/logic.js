@@ -26,7 +26,7 @@
       title: title || 'Klassensprecherwahl',
       mode: MODES.SINGLE,
       allowDouble: false,          // Modus "zwei Stimmen": dieselbe Person zweimal erlaubt?
-      voterCount: 0,               // Anzahl Wähler (Obergrenze für Stimmzettel)
+      voterCount: 0,               // Anzahl Wähler (Obergrenze für Stimmzettel), 0 = unbekannt, keine Obergrenze
       groupNames: ['Mädchen', 'Jungen', 'Gruppe 3'],
       parityGroups: [0, 1],        // Welche zwei Gruppen im Gruppenmodus gewählt werden
       candidates: [],              // { id, name, group (0..2), photo (Data-URL) }
@@ -69,8 +69,9 @@
   function validate(e) {
     var errs = [];
     if (!e.title || !e.title.trim()) errs.push('Die Wahl braucht einen Titel.');
-    if (!Number.isInteger(e.voterCount) || e.voterCount < 1) {
-      errs.push('Bitte die Anzahl der Wähler eintragen (mindestens 1).');
+    // voterCount 0 = Anzahl unbekannt (keine Obergrenze)
+    if (!Number.isInteger(e.voterCount) || e.voterCount < 0) {
+      errs.push('Die Anzahl der Wähler muss eine ganze Zahl sein (oder leer bleiben).');
     }
     e.candidates.forEach(function (c) {
       if (!c.name || !c.name.trim()) errs.push('Ein Kandidat hat keinen Namen.');
@@ -100,7 +101,7 @@
    */
   function applyBallot(e, tally, picks) {
     if (e.status !== 'open') throw new Error('Die Wahl ist nicht geöffnet.');
-    if (tally.ballots >= e.voterCount) {
+    if (e.voterCount > 0 && tally.ballots >= e.voterCount) {
       throw new Error('Es sind bereits alle Stimmen abgegeben.');
     }
     // Pro Freischaltung genau ein Stimmzettel: ohne offene Freischaltung wird nichts angenommen.
@@ -177,7 +178,7 @@
       msgs.push('Die Zahl der gezählten Stimmen (' + votes + ') passt nicht zur Zahl der Stimmzettel (' +
         tally.ballots + ' × ' + perBallot + ').');
     }
-    if (tally.ballots > e.voterCount) {
+    if (e.voterCount > 0 && tally.ballots > e.voterCount) {
       msgs.push('Es wurden mehr Stimmzettel abgegeben als Wähler eingetragen sind.');
     }
     if ((e.unlocked || 0) !== tally.ballots) {

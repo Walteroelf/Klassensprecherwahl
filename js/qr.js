@@ -232,5 +232,9 @@
     return qr;
   }
 
-  root.QR = { encode: encode, toCanvas: toCanvas };
+  // Tabellen auch für den Scanner (qrscan.js)
+  root.QR = {
+    encode: encode, toCanvas: toCanvas,
+    tables: { ECC_PER_BLOCK: ECC_PER_BLOCK, NUM_BLOCKS: NUM_BLOCKS, rawModules: rawModules, alignPositions: alignPositions }
+  };
 })(window);

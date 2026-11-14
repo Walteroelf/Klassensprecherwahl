@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Tests des QR-Lesers</title>
+  <style>
+    body { font: 18px -apple-system, Arial, sans-serif; padding: 20px; }
+    .ok { color: #11693a; } .fail { color: #c62828; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <!--
+    Test-Seite für den QR-Leser (js/qrscan.js): erzeugt Codes mit qr.js, verzerrt sie wie
+    ein Kamerabild (Drehen, Verkleinern, Perspektive, Unschärfe, Rauschen) und liest sie wieder.
+    Öffnen über den lokalen Server: http://localhost:8000/tests/qrscan.html
+  -->
+  <h1>Tests des QR-Lesers</h1>
+  <p id="summary">läuft …</p>
+  <ul id="out"></ul>
+  <script src="../js/qr.js"></script>
+  <script src="../js/qrscan.js"></script>
+  <script>
+    var out = document.getElementById('out'), failed = 0, total = 0;
+    function report(name, okay, extra) {
+      total++; if (!okay) failed++;
+      var li = document.createElement('li');
+      li.className = okay ? 'ok' : 'fail';
+      li.textContent = (okay ? '✓ ' : '✗ ') + name + (extra ? ' – ' + extra : '');
+      out.appendChild(li);
+    }
+    // Zufallsbasierter Text, der wie ein Verbindungstext aussieht (nicht komprimierbar)
+    var seed = 12345;
+    function rnd() { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+    function text(n) {
+      var al = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_', s = 'K1.';
+      while (s.length < n) s += al[Math.floor(rnd() * al.length)];
+      return s;
+    }
+    // Bild aus einem QR-Code erzeugen und verzerren. m: 3x3-Matrix (Zielpunkt → Quellpunkt) als Funktion
+    function render(txt, o) {
+      var src = document.createElement('canvas');
+      QR.toCanvas(src, txt, o.px || 6);
+      var W = o.W || 800, H = o.H || 600, dst = document.createElement('canvas');
+      dst.width = W; dst.height = H;
+      var cx = dst.getContext('2d'), sx = src.getContext('2d');
+      cx.fillStyle = o.bg || '#cfd4da'; cx.fillRect(0, 0, W, H);
+      var sd = sx.getImageData(0, 0, src.width, src.height), dd = cx.getImageData(0, 0, W, H);
+      var ang = (o.angle || 0) * Math.PI / 180, sc = o.scale || 1, persp = o.persp || 0;
+      var cs = Math.cos(ang), sn = Math.sin(ang), ox = W / 2 + (o.dx || 0), oy = H / 2 + (o.dy || 0);
+      for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+        var px = (x - ox), py = (y - oy);
+        var wgt = 1 + persp * px / W;                 // einfache Perspektive: rechts kleiner/größer
+        px /= wgt; py /= wgt;
+        var u = (cs * px + sn * py) / sc + src.width / 2, v = (-sn * px + cs * py) / sc + src.height / 2;
+        if (u < 0 || v < 0 || u >= src.width - 1 || v >= src.height - 1) continue;
+        var ui = Math.floor(u), vi = Math.floor(v), fu = u - ui, fv = v - vi, k = (vi * src.width + ui) * 4, kw = src.width * 4;
+        var val = (sd.data[k] * (1 - fu) + sd.data[k + 4] * fu) * (1 - fv) + (sd.data[k + kw] * (1 - fu) + sd.data[k + kw + 4] * fu) * fv;
+        var j = (y * W + x) * 4;
+        dd.data[j] = dd.data[j + 1] = dd.data[j + 2] = val; dd.data[j + 3] = 255;
+      }
+      // Unschärfe (einfacher Mittelwert) und Rauschen
+      var d = dd.data, noise = o.noise || 0, blur = o.blur || 0;
+      if (blur) {
+        var copy = new Uint8ClampedArray(d);
+        for (y = 1; y < H - 1; y++) for (x = 1; x < W - 1; x++) {
+          var s = 0;
+          for (var by = -blur; by <= blur; by++) for (var bx = -blur; bx <= blur; bx++) s += copy[((y + by) * W + (x + bx)) * 4];
+          var jj = (y * W + x) * 4; d[jj] = d[jj + 1] = d[jj + 2] = s / ((2 * blur + 1) * (2 * blur + 1));
+        }
+      }
+      if (noise) for (var i = 0; i < d.length; i += 4) { var nz = (rnd() - 0.5) * noise; d[i] += nz; d[i + 1] += nz; d[i + 2] += nz; }
+      if (o.smudge) { var sm = o.smudge, x0 = Math.round(W / 2 + 40), y0 = Math.round(H / 2 + 10); for (y = y0; y < y0 + sm; y++) for (x = x0; x < x0 + sm; x++) { var q = (y * W + x) * 4; d[q] = d[q + 1] = d[q + 2] = 128; } }
+      return dd;
+    }
+    function check(name, txt, o) {
+      var t0 = performance.now(), got = null;
+      try { got = QRScan.decode(render(txt, o)); } catch (e) { got = 'FEHLER ' + e.message; }
+      report(name, got === txt, (got === txt ? '' : 'gelesen: ' + String(got).slice(0, 30)) + ' (' + Math.round(performance.now() - t0) + ' ms)');
+    }
+
+    // Saubere Codes, verschiedene Größen
+    [60, 200, 400, 700].forEach(function (n) { check('sauber, ' + n + ' Zeichen', text(n), { px: 5, scale: 1 }); });
+    check('sauber, 900 Zeichen (große Version)', text(900), { px: 4, H: 700 });
+    // Verkleinert, gedreht, schief, unscharf, verrauscht
+    check('klein (3 Pixel je Modul)', text(500), { px: 6, scale: 0.5 });
+    check('gedreht 25°', text(500), { px: 4, angle: 25 });
+    check('gedreht 90°', text(500), { px: 4, angle: 90 });
+    check('gedreht 180°', text(500), { px: 4, angle: 180 });
+    check('gedreht 200°, klein', text(300), { px: 4, angle: 200, scale: 0.8 });
+    check('Perspektive', text(500), { px: 4, persp: 0.12 });
+    check('Perspektive und Drehung', text(600), { px: 4, persp: -0.1, angle: 15 });
+    check('leicht unscharf', text(500), { px: 5, blur: 1, scale: 0.7 });
+    check('Rauschen', text(500), { px: 5, noise: 60, scale: 0.8 });
+    check('unscharf + Rauschen + gedreht', text(400), { px: 5, blur: 1, noise: 40, angle: 12, scale: 0.8 });
+    check('versetzt, dunkler Hintergrund', text(500), { px: 4, dx: 120, dy: -60, bg: '#222' });
+    check('Fleck im Code (Fehlerkorrektur)', text(300), { px: 5, smudge: 30 });
+    check('Fleck und Drehung', text(300), { px: 5, smudge: 30, angle: 33 });
+
+    document.getElementById('summary').textContent = failed ? failed + ' von ' + total + ' Tests FEHLGESCHLAGEN' : 'Alle ' + total + ' Tests bestanden';
+    document.title = failed ? 'FEHLER' : 'ALLE OK';
+  </script>
+</body>
+</html>

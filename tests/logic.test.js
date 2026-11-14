@@ -82,6 +82,19 @@ test('Es werden nie mehr Stimmzettel angenommen als Wähler eingetragen sind', (
   assert.strictEqual(t.ballots, 2);
 });
 
+test('Ohne Wählerzahl (0 = unbekannt) gibt es keine Obergrenze, die Freischaltung begrenzt weiter', () => {
+  const e = makeElection('single', 3, 0);
+  e.unlocked = 0;
+  assert.deepStrictEqual(L.validate(e), []);
+  let t = L.newTally();
+  for (let i = 0; i < 30; i++) { e.unlocked++; t = L.applyBallot(e, t, [pick('c0')]); }
+  assert.strictEqual(t.ballots, 30);
+  assert.throws(() => L.applyBallot(e, t, [pick('c0')]), /nicht freigeschaltet/);
+  assert.deepStrictEqual(L.checkConsistency(e, t), []);
+  e.voterCount = -1;
+  assert.ok(L.validate(e).length >= 1);
+});
+
 test('Pro Freischaltung wird genau ein Stimmzettel angenommen', () => {
   const e = makeElection('single', 3, 5, { unlocked: 1 });
   let t = L.applyBallot(e, L.newTally(), [pick('c0')]);          // 1 Freischaltung → 1 Stimmzettel
@@ -133,7 +146,7 @@ test('Prüfung beim Abschluss warnt bei unpassenden Zahlen', () => {
 
 test('Einstellungen werden geprüft', () => {
   const e = L.newElection('X');
-  assert.ok(L.validate(e).length >= 2);               // keine Wähler, keine Kandidaten
+  assert.ok(L.validate(e).length >= 1);               // keine Kandidaten
   const ok = makeElection('single', 6, 20);
   assert.deepStrictEqual(L.validate(ok), []);
   const g = makeElection('group', 6, 20);
