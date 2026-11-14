@@ -39,15 +39,15 @@
         var cur = seq[shown - 1], r = results[cur.b], row = r.rows[cur.i];
         var earlier = seq.slice(0, shown - 1).reverse();
         body = [
-          h('div', { class: 'stage reveal-in' + (row.rank === 1 && row.votes > 0 ? ' win' : '') },
+          h('div', { class: 'stage reveal-in' + (row.rank === 1 && !(row.votes === 0) ? ' win' : '') },
             groupTag(r), h('div', { class: 'place' }, 'Platz ' + row.rank), photo(row, true),
-            h('div', { class: 'sname' }, row.name), h('div', { class: 'svotes' }, plural(row.votes))),
+            h('div', { class: 'sname' }, row.name), row.votes != null ? h('div', { class: 'svotes' }, plural(row.votes)) : null),
           opts.tieFor ? opts.tieFor(r.title, row.rank) : null,
           earlier.length ? h('div', { class: 'card earlier' }, earlier.map(function (e) {
             var rr = results[e.b], x = rr.rows[e.i];
             return h('div', { class: 'res-row' }, h('div', { class: 'rank' }, x.rank + '.'), photo(x),
               h('div', { class: 'rname' }, x.name, rr.title ? h('div', { class: 'small' }, 'Gruppe ' + rr.title) : null),
-              h('div', { class: 'votes' }, String(x.votes)));
+              x.votes != null ? h('div', { class: 'votes' }, String(x.votes)) : null);
           })) : null
         ];
       } else {
@@ -56,9 +56,9 @@
           return h('div', { class: 'card' },
             r.title ? h('h2', {}, 'Gruppe ' + r.title) : null,
             r.rows.map(function (row) {
-              return h('div', { class: 'res-row reveal-in' + (row.rank === 1 && row.votes > 0 ? ' win' : '') },
+              return h('div', { class: 'res-row reveal-in' + (row.rank === 1 && !(row.votes === 0) ? ' win' : '') },
                 h('div', { class: 'rank' }, row.rank + '.'), photo(row),
-                h('div', { class: 'rname' }, row.name), h('div', { class: 'votes' }, String(row.votes)));
+                h('div', { class: 'rname' }, row.name), row.votes != null ? h('div', { class: 'votes' }, String(row.votes)) : null);
             }),
             r.abstentions != null ? h('div', { class: 'res-row' },
               h('div', { class: 'rank' }, '–'), h('div', { class: 'rname' }, 'Enthaltungen'), h('div', { class: 'votes' }, String(r.abstentions))) : null);

@@ -60,7 +60,7 @@
         g.fillText('Gruppe ' + r.title, 100, y); y += rowH * 1.1;
       }
       r.rows.forEach(function (row, i) {
-        var win = row.rank === 1 && row.votes > 0;
+        var win = row.rank === 1 && row.votes !== 0;
         if (withPhotos) {
           var cy = y - fs * 0.35, x0 = 170, y0 = cy - ps / 2, im = imgs[b + '-' + i];
           g.save();
@@ -76,8 +76,7 @@
         g.textAlign = 'left';
         g.fillText(row.rank + '.', 100, y);
         g.fillText(row.name, nameX, y);
-        g.textAlign = 'right';
-        g.fillText(String(row.votes), W - 100, y);
+        if (row.votes != null) { g.textAlign = 'right'; g.fillText(String(row.votes), W - 100, y); }
         y += rowH;
       });
       if (r.abstentions != null) {            // bei begrenzter Platzzahl werden die Enthaltungen nicht gezeigt

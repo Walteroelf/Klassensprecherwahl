@@ -114,7 +114,7 @@
 
   /* ---------- Zustand ---------- */
   var elections = [];          // alle gespeicherten Wahlen
-  var settings = { id: 'settings', boardEnabled: false, activeId: null, bigText: false, contrast: false, speech: false, showHint: true, role: null, showPlaces: 3 };
+  var settings = { id: 'settings', boardEnabled: false, activeId: null, bigText: false, contrast: false, speech: false, showHint: true, role: null, showPlaces: 3, showVotes: true };
   var cur = null;              // aktuelle Wahl: { e, t (Stimmenstand), v (Wählerliste), practice? }
   var practice = null;         // Probemodus: lebt NUR im Arbeitsspeicher, wird nie gespeichert
   var previewing = false;      // Kandidaten-Vorschau läuft
@@ -1544,7 +1544,11 @@
         h('div', { class: 'seg places' }, PLACE_OPTS.map(function (o) {
           return h('button', { class: places === o[0] ? 'on' : '', onclick: async function () { settings.showPlaces = o[0]; await saveSettings(); resultView({ full: full }); } }, o[1]);
         })),
-        h('p', { class: 'muted' }, 'Alle anderen Plätze bleiben verborgen, damit niemand bloßgestellt wird. Das gilt für Countdown, PDF und Bild.'),
+        h('h2', {}, 'Stimmenzahlen zeigen?'),
+        h('div', { class: 'seg places' }, [[true, 'Mit Stimmenzahlen'], [false, 'Nur wer gewonnen hat']].map(function (o) {
+          return h('button', { class: (settings.showVotes !== false) === o[0] ? 'on' : '', onclick: async function () { settings.showVotes = o[0]; await saveSettings(); resultView({ full: full }); } }, o[1]);
+        })),
+        h('p', { class: 'muted' }, 'Alles, was du hier nicht zeigst, bleibt verborgen, damit niemand bloßgestellt wird. Das gilt für Countdown, PDF und Bild.'),
         h('button', { class: 'btn btn-big', onclick: countdownView }, '🎉 Ergebnis-Countdown starten'),
         cur.practice ? null : h('div', {},
           h('div', { class: 'spacer' }),
@@ -1590,12 +1594,14 @@
 
   // Ergebnisdaten ohne Kandidatenobjekte (für Countdown und Export).
   // maxRank > 0: nur Plätze bis zu diesem Rang, ohne Enthaltungen (niemand wird bloßgestellt).
+  // Ohne Stimmenzahlen (settings.showVotes = false) gibt es weder Stimmen noch Enthaltungen: nur, wer gewonnen hat.
   function plainResults(res, withPhotos, maxRank) {
+    var withVotes = settings.showVotes !== false;
     return res.map(function (r) {
       return {
-        title: r.title, abstentions: maxRank > 0 ? null : r.abstentions,
+        title: r.title, abstentions: maxRank > 0 || !withVotes ? null : r.abstentions,
         rows: r.rows.filter(function (x) { return !(maxRank > 0) || x.rank <= maxRank; }).map(function (x) {
-          var row = { name: x.candidate.name, votes: x.votes, rank: x.rank };
+          var row = { name: x.candidate.name, votes: withVotes ? x.votes : null, rank: x.rank };
           if (withPhotos) row.photo = x.candidate.photo;
           return row;
         })
