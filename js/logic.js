@@ -27,7 +27,7 @@
       mode: MODES.SINGLE,
       allowDouble: false,          // Modus "zwei Stimmen": dieselbe Person zweimal erlaubt?
       voterCount: 0,               // Anzahl Wähler (Obergrenze für Stimmzettel), 0 = unbekannt, keine Obergrenze
-      groupNames: ['Mädchen', 'Jungen', 'Gruppe 3'],
+      groupNames: ['Mädchen', 'Jungen'],   // weitere Gruppen (bis 4) sind optional
       parityGroups: [0, 1],        // Welche zwei Gruppen im Gruppenmodus gewählt werden
       candidates: [],              // { id, name, group (0..2), photo (Data-URL) }
       status: 'setup',             // 'setup' | 'open' | 'closed'

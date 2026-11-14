@@ -458,6 +458,9 @@
   /* ---------- Lehrerbereich: Wahl einrichten ---------- */
   function setupView(e, ctx, isNew) {
     if (!requireTeacher()) return;
+    // Alte Wahlen: die frühere leere „Gruppe 3“ entfernen
+    if (!ctx.groupsChecked && e.groupNames.length === 3 && e.groupNames[2] === 'Gruppe 3' && !e.candidates.some(function (c) { return c.group === 2; }) && e.parityGroups.every(function (p) { return p < 2; })) e.groupNames.pop();
+    ctx.groupsChecked = true;
     var y = window.scrollY;
     function again() { setupView(e, ctx, isNew); window.scrollTo(0, y); }
 
@@ -488,14 +491,29 @@
 
       e.mode === 'group' ? h('div', {},
         h('h2', {}, 'Gruppen'),
-        h('p', { class: 'muted' }, 'Jedes Kind wird einer Gruppe zugeordnet, z. B. Mädchen und Jungen. Die Kinder wählen je Gruppe eine Person.'),
+        h('p', { class: 'muted' }, 'Jedes Kind wird einer Gruppe zugeordnet. Die Kinder wählen je Gruppe eine Person.'),
         e.groupNames.map(function (n, g) {
+          var last = g === e.groupNames.length - 1;
           return h('div', {},
             h('label', { class: 'field' }, SPLIT + (g + 1)),
-            h('input', { type: 'text', value: n, onchange: function (ev) { e.groupNames[g] = ev.target.value.trim() || (SPLIT + (g + 1)); again(); } }));
+            h('div', { class: 'row' },
+              h('input', { type: 'text', class: 'grow', value: n, onchange: function (ev) { e.groupNames[g] = ev.target.value.trim() || (SPLIT + (g + 1)); again(); } }),
+              g >= 2 && last ? h('button', { class: 'btn btn-secondary btn-small', onclick: async function () {
+                if (!(await dialog({ title: '„' + n + '“ entfernen?', text: 'Kandidaten dieser Gruppe wechseln in die Gruppe „' + e.groupNames[0] + '“.', ok: 'Entfernen', danger: true }))) return;
+                e.candidates.forEach(function (c) { if (c.group === g) c.group = 0; });
+                e.groupNames.pop();
+                if (e.parityGroups.some(function (p) { return p >= e.groupNames.length; })) e.parityGroups = [0, 1];
+                again();
+              } }, 'Entfernen') : null));
         }),
-        h('label', { class: 'field' }, 'Erste Seite in der Wahlkabine'), groupSelect(0),
-        h('label', { class: 'field' }, 'Zweite Seite in der Wahlkabine'), groupSelect(1)) : null,
+        e.groupNames.length < 4 ? h('button', { class: 'btn btn-secondary btn-small', onclick: function () {
+          e.groupNames.push(SPLIT + (e.groupNames.length + 1));
+          again();
+        } }, '＋ Weitere Gruppe hinzufügen (optional)') : null,
+        e.groupNames.length > 2 ? h('div', {},
+          h('p', { class: 'muted' }, 'Es werden immer zwei Gruppen gewählt. Lege fest, welche:'),
+          h('label', { class: 'field' }, 'Erste Seite in der Wahlkabine'), groupSelect(0),
+          h('label', { class: 'field' }, 'Zweite Seite in der Wahlkabine'), groupSelect(1)) : null) : null,
 
       h('h2', {}, 'Kandidaten (' + e.candidates.length + ')'),
       h('div', { class: 'card' },

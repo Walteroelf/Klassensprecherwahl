@@ -60,7 +60,7 @@ Ein iPad für die Kinder wird über den kleinen Knopf **Als Wahlkabine verwenden
 
 Das Hauptgerät führt dich in **drei Schritten**; oben steht immer „Als Nächstes: …“.
 
-1. **Wahl einrichten:** Neue Wahl anlegen mit Titel, Modus, Kandidaten mit Foto (Kamera oder Mediathek), Wählerzahl (**optional**: leer lassen, wenn du sie nicht kennst, dann gibt es keine Obergrenze und du schließt die Wahl selbst ab), optional Wählerliste. Die Gruppen-Einstellung erscheint nur im Modus „Eine Stimme je Gruppe“.
+1. **Wahl einrichten:** Neue Wahl anlegen mit Titel, Modus, Kandidaten mit Foto (Kamera oder Mediathek), Wählerzahl (**optional**: leer lassen, wenn du sie nicht kennst, dann gibt es keine Obergrenze und du schließt die Wahl selbst ab), optional Wählerliste. Die Gruppen-Einstellung erscheint nur im Modus „Eine Stimme je Gruppe“. Standard sind zwei Gruppen (Mädchen, Jungen); eine dritte und vierte Gruppe lassen sich optional hinzufügen.
 2. **Kinder wählen lassen:** *Kabinen verbinden und Wahl durchführen* (siehe Abschnitt 5).
 3. **Wahl abschließen:** Erst jetzt erscheint das Ergebnis mit Wahlprotokoll, Countdown, PDF/Bild und bei Gleichstand die Stichwahl.
 
