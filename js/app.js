@@ -896,10 +896,40 @@
   function cancelOutstanding(slot) {
     var e = cur.e;
     if ((e.unlocked || 0) > cur.t.ballots) { e.unlocked -= 1; persistElection(e); }
+    if (slot.child) {                          // das Kind hat nicht gewählt: Haken wieder entfernen
+      var p = cur.v.list.filter(function (x) { return x.name === slot.child; })[0];
+      if (p) { p.done = false; DB.put('voters', cur.v); }
+      slot.child = null;
+    }
     slot.state = slot.link.isOpen() ? 'idle' : 'offline';
   }
 
-  async function unlockSlot(i) {
+  // Beim Freischalten erscheint die Wählerliste: Das Kind antippen, das jetzt in die Kabine geht.
+  // Es wird abgehakt (nur "hat gewählt", nie was oder wo). Ohne Liste wird sofort freigeschaltet.
+  function pickChild() {
+    return new Promise(function (resolve) {
+      var open = cur.v.list.filter(function (p) { return !p.done; });
+      var overlay;
+      function close(v) { overlay.remove(); resolve(v); }
+      overlay = h('div', { class: 'overlay', role: 'dialog', 'aria-modal': 'true' },
+        h('div', { class: 'dialog pick-dialog' },
+          h('h2', {}, 'Wer geht in die Kabine?'),
+          open.length ? h('div', { class: 'vlist' }, open.map(function (p) {
+            return h('button', { class: 'vrow', onclick: function () { close(p); } }, h('span', { class: 'tick' }, ''), p.name);
+          })) : h('p', {}, 'Alle Kinder der Liste sind abgehakt.'),
+          h('div', { class: 'row' },
+            h('button', { class: 'btn btn-secondary', onclick: function () { close(false); } }, 'Ohne Namen freischalten'),
+            h('button', { class: 'btn btn-secondary', onclick: function () { close(null); } }, 'Abbrechen'))));
+      document.body.append(overlay);
+    });
+  }
+  async function startUnlock(i) {
+    var child = false;
+    if (cur.v.list.length) { child = await pickChild(); if (child === null) return; }
+    unlockSlot(i, child || null);
+  }
+
+  async function unlockSlot(i, chosen) {
     var slot = slots[i], e = cur.e;
     if (!slot || !slot.link.isOpen() || (slot.state !== 'idle' && slot.state !== 'voted') || e.status === 'closed') return;
     if (reached(e, e.unlocked || 0)) { await info('Alle Wähler waren dran', 'Es sind schon alle Stimmzettel vergeben.'); return; }
@@ -911,6 +941,8 @@
     e.unlocked = (e.unlocked || 0) + 1;    // genau eine Freischaltung = genau ein Stimmzettel
     await persistElection(e);
     slot.state = 'voting';
+    // Ausgewähltes Kind aus der Wählerliste abhaken (nur "hat gewählt", nie was oder wo)
+    if (chosen && !chosen.done) { chosen.done = true; slot.child = chosen.name; await DB.put('voters', cur.v); }
     // Für jede Freischaltung eine neue Zufallsreihenfolge je Seite
     slot.link.send({ t: 'unlock', pages: L.pages(e).map(function (p) { return { scope: p.scope, title: p.title, order: L.shuffle(p.candidateIds) }; }) });
     runView();
@@ -948,7 +980,7 @@
       var stored = Object.assign({ id: cur.e.id }, next);
       await persistTally(stored);                          // erst speichern …
       cur.t = stored;                                      // … dann merken
-      slot.state = 'voted';
+      slot.state = 'voted'; slot.child = null;      // Haken bleibt
       slot.link.send({ t: 'ack', ok: true });
     } catch (err) {
       slot.link.send({ t: 'ack', ok: false, msg: err.message });
@@ -980,7 +1012,7 @@
         buttons = [h('button', { class: 'btn btn-secondary', onclick: function () { lockSlot(i); } }, '↩ Rückgängig')];
       } else {
         buttons = [
-          h('button', { class: 'btn btn-green', disabled: all, onclick: function () { unlockSlot(i); } }, 'Kind freischalten'),
+          h('button', { class: 'btn btn-green', disabled: all, onclick: function () { startUnlock(i); } }, 'Kind freischalten'),
           h('button', { class: 'btn btn-secondary btn-small', onclick: function () { s.link.close(); s.state = 'offline'; runView(); } }, 'Trennen')];
       }
       return h('div', { class: 'card slot ' + st },
@@ -988,12 +1020,23 @@
         h('div', { class: 'row' }, buttons));
     }
 
+    // Wählerliste als Übersicht: wer ist schon dran gewesen? Ein Tipp setzt oder entfernt den Haken von Hand.
+    var list = cur.v.list, doneCount = list.filter(function (p) { return p.done; }).length;
+    var voterCard = list.length ? h('div', { class: 'card voters' },
+      h('h2', {}, 'Wählerliste: ' + doneCount + ' von ' + list.length + ' abgehakt'),
+      h('p', { class: 'muted' }, 'Beim Freischalten wählst du das Kind aus, es wird dann abgehakt. Zum Korrigieren kannst du hier einen Namen antippen.'),
+      h('div', { class: 'vlist' }, list.map(function (p) {
+        return h('button', { class: 'vrow' + (p.done ? ' done' : ''), onclick: async function () { p.done = !p.done; await DB.put('voters', cur.v); runView(); } },
+          h('span', { class: 'tick' }, p.done ? '✓' : ''), p.name);
+      }))) : null;
+
     show('run',
       h('div', { class: 'topbar' }, h('h1', {}, e.title), h('button', { class: 'btn btn-secondary btn-small', onclick: menuView }, '← Einrichtung')),
       h('p', { class: 'run-count' }, countText(e, t.ballots)),
       bar,
       full ? h('div', { class: 'next' }, 'Alle Kinder haben gewählt. Du kannst die Wahl jetzt abschließen.') : null,
       h('div', { class: 'slots' }, [0, 1, 2].slice(0, MAX_SLOTS).map(slotCard)),
+      voterCard,
       h('p', { class: 'muted' }, 'Das Kind wählt allein in der Kabine. Danach sperrt sich die Kabine, bis du sie wieder freischaltest. Nach 2 Minuten ohne Berührung sperrt sie sich von selbst.'),
       h('details', {}, h('summary', {}, 'Wahl abschließen'),
         h('p', { class: 'muted' }, 'Danach sind keine Stimmen mehr möglich, und das Ergebnis wird sichtbar.' +

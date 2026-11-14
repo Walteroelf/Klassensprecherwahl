@@ -86,7 +86,7 @@ Dieser Weg braucht beim iPad **Internet** (die Seite wird über den Link geladen
 
 Hat ein Gerät keine Kamera, geht es auch mit Text: Unter **Ohne Kamera** den Text kopieren und einfügen.
 
-**Im Betrieb** zeigt das Hauptgerät (z. B. auf der Tafel) den Fortschritt und für jede Kabine den Zustand: *frei*, *wählt gerade*, *sperrt gleich automatisch*, *hat gewählt*. Ein Kind aufrufen, bei einer freien Kabine auf **Kind freischalten** tippen. Die Reihenfolge der Fotos ist bei jeder Freischaltung zufällig.
+**Im Betrieb** zeigt das Hauptgerät (z. B. auf der Tafel) den Fortschritt und für jede Kabine den Zustand: *frei*, *wählt gerade*, *sperrt gleich automatisch*, *hat gewählt*. Ein Kind aufrufen und bei einer freien Kabine auf **Kind freischalten** tippen. Hast du eine Wählerliste angelegt, erscheint sie dabei: Tippe das Kind an, das in die Kabine geht. Es wird abgehakt (nur „war dran“, nie was oder wo es gewählt hat). Die Liste mit allen Haken steht darunter, ein Tipp korrigiert einen Haken. Mit **Rückgängig** verschwindet auch der Haken wieder. Ohne Liste schaltest du direkt frei. Die Reihenfolge der Fotos ist bei jeder Freischaltung zufällig.
 Mit **Rückgängig** nimmst du eine Freischaltung zurück, wenn das falsche Kind aufgerufen wurde. Abgegebene Stimmen lassen sich nie zurücknehmen.
 Nach 2 Minuten ohne Berührung sperrt sich eine Kabine von selbst. Insgesamt werden nie mehr Kabinen freigeschaltet, als Wähler eingetragen sind.
 Am Ende **Wahl abschließen** (am Hauptgerät, mit Sicherheitsabfrage). Die Kabinen zeigen dann „Die Wahl ist beendet“, das Ergebnis erscheint nur am Hauptgerät.

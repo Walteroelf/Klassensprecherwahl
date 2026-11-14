@@ -246,3 +246,12 @@ html.a11y-contrast .next, html.a11y-contrast .tile { border: 3px solid #000; bac
 .cand .seg { margin: 4px 0 0; }
 .cand .seg button { padding: 6px 10px; font-size: 16px; min-width: 70px; }
 .places { margin: 8px 0 14px; }
+
+/* Wählerliste in der Kabinen-Übersicht */
+.vlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.vrow { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line, #cdd3e6); background: #fff; font-size: 20px; text-align: left; cursor: pointer; }
+.vrow .tick { width: 26px; font-weight: 800; color: #2e9e5b; }
+.vrow.done { background: #e6f6ec; color: #4b6b57; text-decoration: line-through; }
+.vrow.sel { border-color: #2f5fd0; background: #e7eeff; font-weight: 700; }
+.pick-dialog { max-width: 760px; }
+.pick-dialog .vlist { margin: 14px 0; text-align: left; }
