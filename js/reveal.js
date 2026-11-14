@@ -19,6 +19,7 @@
     var seq = [];
     results.forEach(function (r, b) { for (var i = r.rows.length - 1; i >= 0; i--) seq.push({ b: b, i: i }); });
     var shown = 0;
+    var summary = false;       // erst nach dem letzten Platz (Sieger) auf Wunsch die ganze Rangliste
     var wrap = h('div', { class: 'reveal' });
 
     function photo(row, big) {
@@ -30,12 +31,13 @@
     function plural(n) { return n + (n === 1 ? ' Stimme' : ' Stimmen'); }
 
     function render() {
-      var done = shown >= seq.length;
+      var done = shown >= seq.length;            // alle Plätze aufgedeckt
+      var finished = done && summary;            // und die Übersicht wird gezeigt
       var body;
       if (shown === 0) {
         body = h('div', { class: 'stage wait' }, h('div', { class: 'big' }, '🥁'), h('h2', {}, 'Bereit?'),
           h('p', {}, 'Tippe unten auf „Weiter“. Es wird immer der nächste Platz aufgedeckt.'));
-      } else if (!done) {
+      } else if (!finished) {
         var cur = seq[shown - 1], r = results[cur.b], row = r.rows[cur.i];
         var earlier = seq.slice(0, shown - 1).reverse();
         body = [
@@ -64,9 +66,9 @@
               h('div', { class: 'rank' }, '–'), h('div', { class: 'rname' }, 'Enthaltungen'), h('div', { class: 'votes' }, String(r.abstentions))) : null);
         }), opts.footer ? opts.footer() : null];
       }
-      var bar = done ? null : h('div', { class: 'reveal-bar' },
-        h('button', { class: 'btn btn-big btn-green', onclick: function () { shown++; render(); window.scrollTo(0, 0); } }, 'Weiter ▶'),
-        h('button', { class: 'btn btn-secondary', onclick: function () { shown = seq.length; render(); window.scrollTo(0, 0); } }, 'Alle sofort zeigen'));
+      var bar = finished ? null : h('div', { class: 'reveal-bar' },
+        h('button', { class: 'btn btn-big btn-green', onclick: function () { if (done) summary = true; else shown++; render(); window.scrollTo(0, 0); } }, done ? 'Zur Übersicht ▶' : 'Weiter ▶'),
+        done ? null : h('button', { class: 'btn btn-secondary', onclick: function () { shown = seq.length; summary = true; render(); window.scrollTo(0, 0); } }, 'Alle sofort zeigen'));
       Dom.mount(wrap, heading, body, bar);
     }
     render();
