@@ -1502,21 +1502,25 @@
   }
 
   /* ---------- Ergebnis ---------- */
-  // Gleichstand-Hinweise mit Stichwahl-Knopf (erst nach dem Countdown bzw. in der Lehrer-Ansicht)
-  function tiesBlock(res) {
+  // Ein Gleichstand mit Stichwahl-Knopf
+  function tieNode(tie) {
     var e = cur.e;
-    if (cur.practice) return null;
-    return L.findTies(res).map(function (tie) {
-      var existing = elections.filter(function (x) { return x.runoffOf && x.runoffOf.id === e.id && x.runoffOf.key === L.runoffKey(tie); })[0];
-      return h('div', { class: 'warn' },
-        h('strong', {}, 'Gleichstand' + (tie.title ? ' in Gruppe ' + tie.title : '') + ' um Platz ' + tie.rank + ': '),
-        tie.rows.map(function (r) { return r.candidate.name; }).join(', '),
-        h('div', { class: 'spacer' }),
-        existing ?
-          h('button', { class: 'btn btn-secondary', onclick: function () { openElection(existing.id); } }, 'Stichwahl ansehen') :
-          h('button', { class: 'btn', onclick: function () { startRunoff(tie); } }, 'Stichwahl starten'));
-    });
+    var existing = elections.filter(function (x) { return x.runoffOf && x.runoffOf.id === e.id && x.runoffOf.key === L.runoffKey(tie); })[0];
+    return h('div', { class: 'warn' },
+      h('strong', {}, 'Gleichstand' + (tie.title ? ' in Gruppe ' + tie.title : '') + ' um Platz ' + tie.rank + ': '),
+      tie.rows.map(function (r) { return r.candidate.name; }).join(', '),
+      h('div', { class: 'spacer' }),
+      existing ?
+        h('button', { class: 'btn btn-secondary', onclick: function () { openElection(existing.id); } }, 'Stichwahl ansehen') :
+        h('button', { class: 'btn', onclick: function () { startRunoff(tie); } }, 'Stichwahl starten'));
   }
+  // Nur Gleichstände, die für die gezeigten Plätze wichtig sind (bei „Nur der Sieger“ also nur um Platz 1)
+  function relevantTies(res, onlyShown) {
+    if (cur.practice) return [];
+    var places = settings.showPlaces;
+    return L.findTies(res).filter(function (tie) { return !onlyShown || !(places > 0) || tie.rank <= places; });
+  }
+  function tiesBlock(res, onlyShown) { return relevantTies(res, onlyShown).map(tieNode); }
 
   // Ergebnisseite: zuerst ist nichts zu sehen. Die Zahlen erscheinen nur im Countdown oder auf Wunsch der Lehrkraft.
   function resultView(opts) {
@@ -1556,7 +1560,7 @@
 
       full ? h('div', {},
         h('div', { class: 'warn' }, 'Nur für die Lehrkraft: Hier sind alle Zahlen sichtbar. Bitte nicht auf der Tafel zeigen.'),
-        tiesBlock(res),
+        tiesBlock(res, false),
         res.map(function (r) {
           return h('div', { class: 'card' },
             r.title ? h('h2', {}, SPLIT + r.title) : null,
@@ -1604,11 +1608,19 @@
     var e = cur.e;
     var res = L.computeResults(e, cur.t);
     var data = plainResults(res, true, settings.showPlaces);
+    var ties = relevantTies(res, true);
     show('countdown',
       h('div', { class: 'topbar' },
         h('h1', {}, (cur.practice ? 'Probeergebnis: ' : '🏆 ') + e.title),
         h('button', { class: 'btn btn-secondary btn-small', onclick: function () { resultView(); } }, '← Zurück')),
-      Reveal.create(data, null, { footer: function () { return tiesBlock(res); } }));
+      Reveal.create(data, null, {
+        // Ein Gleichstand erscheint genau dann, wenn der betroffene Platz aufgedeckt wird
+        tieFor: function (title, rank) {
+          var t = ties.filter(function (x) { return (x.title || '') === (title || '') && x.rank === rank; })[0];
+          return t ? tieNode(t) : null;
+        },
+        footer: function () { return ties.map(tieNode); }
+      }));
   }
 
   // kind: 'pdf' oder 'png'; how: 'save' (lokal speichern) oder 'share' (Teilen-Menü)
