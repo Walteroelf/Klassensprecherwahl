@@ -256,3 +256,10 @@ html.a11y-contrast .next, html.a11y-contrast .tile { border: 3px solid #000; bac
 .pick-dialog { max-width: 760px; }
 .pick-dialog .vlist { margin: 14px 0; text-align: left; }
 .kiosk { justify-content: center; margin-top: 18px; }
+
+/* Schule: Logo und Name */
+.school-logo { display: block; max-width: 220px; max-height: 160px; width: auto; height: auto; margin: 0 auto 8px; object-fit: contain; }
+.school-logo.small { max-width: 120px; max-height: 80px; margin: 8px 0; }
+.school-name { font-size: 22px; font-weight: 600; color: var(--muted, #556); margin: 4px 0 10px; }
+.school-head { display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 24px; font-weight: 600; margin: 4px 0 8px; }
+.school-head .school-logo { margin: 0; }

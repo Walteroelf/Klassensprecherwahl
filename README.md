@@ -161,6 +161,11 @@ Danach sind Wahlen, Kandidaten, Fotos, Wählerlisten, Stimmen, Protokolle, Einst
 - Im Ergebnis: **PDF speichern** oder **Bild speichern** legt die Datei lokal ab. Am Mac in Chrome oder Edge öffnet sich ein Speichern-Fenster mit freier Ortswahl (z. B. Schreibtisch), in Safari landet die Datei im Ordner „Downloads“, am iPad in der App „Dateien“. **PDF teilen oder drucken …** öffnet das Teilen-Menü (AirDrop, Mail, Drucken).
 - Der Export enthält Titel, Datum, Kandidaten **mit Foto** und Summen, nur für die gewählten Plätze, niemals Einzelstimmen. Das PDF enthält die Seite als Bild.
 
+**Schulname und Logo (optional)**
+- *Weitere Einstellungen → Schule (optional)*: Name der Schule eintragen und/oder ein Logo hochladen (PNG mit Transparenz funktioniert). Das Logo wird automatisch verkleinert.
+- Es erscheint auf dem Startbildschirm, auf dem Wartebildschirm der Wahlkabinen (statt der Wahlurne), im Ergebnis-Countdown und oben auf PDF und Bild. Die Kabinen bekommen Name und Logo beim Verbinden vom Hauptgerät und speichern sie nicht.
+- Ohne beides läuft alles wie bisher.
+
 **Barrierefreiheit** (Lehrerbereich → *Weitere Einstellungen* → *Anzeige und Vorlesen*)
 - **Große Schrift** und **Hoher Kontrast** gelten für die ganze App.
 - **Vorlesen** liest Anweisungen, Namen und die Bestätigungsfrage vor. Es nutzt nur die Sprachausgabe des Geräts und nur auf dem Gerät gespeicherte deutsche Stimmen, keinen Online-Dienst. Fehlt eine deutsche Stimme, lässt sich die Option nicht einschalten: In den iPad-Einstellungen unter *Bedienungshilfen → Gesprochene Inhalte → Stimmen* eine deutsche Stimme laden. Bei eingeschaltetem Vorlesen hat jede Kandidatenkarte einen 🔊-Knopf.

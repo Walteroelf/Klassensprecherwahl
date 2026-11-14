@@ -66,6 +66,40 @@
     return h('div', { class: 'photo photo-ph ' + (cls || '') }, cand && cand.name ? cand.name.charAt(0).toUpperCase() : '?');
   }
 
+  /* ---------- Schule: Name und Logo (beides optional) ---------- */
+  var kabSchool = null;        // Wahlkabine: Schuldaten, die das Hauptgerät mitgeschickt hat (nur im Arbeitsspeicher)
+  function school() {
+    if (cur && cur.remote) return kabSchool || { name: '', logo: '' };
+    return { name: settings.schoolName || '', logo: settings.schoolLogo || '' };
+  }
+  // Logo statt Wahlurne, falls eines hochgeladen wurde
+  function schoolMark(emoji) {
+    var sc = school();
+    return sc.logo ? h('img', { class: 'school-logo', src: sc.logo, alt: sc.name || 'Schullogo' }) : h('div', { class: 'big' }, emoji || '🗳️');
+  }
+  function schoolNameEl() { var sc = school(); return sc.name ? h('p', { class: 'school-name' }, sc.name) : null; }
+  function schoolHead() {
+    var sc = school();
+    if (!sc.logo && !sc.name) return null;
+    return h('div', { class: 'school-head' }, sc.logo ? h('img', { class: 'school-logo small', src: sc.logo, alt: '' }) : null, sc.name ? h('span', {}, sc.name) : null);
+  }
+  // Logo verkleinern (höchstens 360 Pixel), Transparenz bleibt bei PNG erhalten
+  function resizeLogo(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var w = img.naturalWidth || 300, hh = img.naturalHeight || 300, k = Math.min(1, 360 / Math.max(w, hh));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(hh * k));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        resolve(/jpe?g/i.test(file.type) ? c.toDataURL('image/jpeg', 0.9) : c.toDataURL('image/png'));
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('Das Bild konnte nicht gelesen werden.')); };
+      img.src = url;
+    });
+  }
+
   // Pop-up. Liefert true (OK) oder false (Zurück).
   function dialog(o) {
     return new Promise(function (resolve) {
@@ -114,7 +148,7 @@
 
   /* ---------- Zustand ---------- */
   var elections = [];          // alle gespeicherten Wahlen
-  var settings = { id: 'settings', boardEnabled: false, activeId: null, bigText: false, contrast: false, speech: false, showHint: true, role: null, showPlaces: 3, showVotes: true };
+  var settings = { id: 'settings', boardEnabled: false, activeId: null, bigText: false, contrast: false, speech: false, showHint: true, role: null, showPlaces: 3, showVotes: true, schoolName: '', schoolLogo: '' };
   var cur = null;              // aktuelle Wahl: { e, t (Stimmenstand), v (Wählerliste), practice? }
   var practice = null;         // Probemodus: lebt NUR im Arbeitsspeicher, wird nie gespeichert
   var previewing = false;      // Kandidaten-Vorschau läuft
@@ -299,8 +333,9 @@
     else text = 'Die Wahlkabine ist gesperrt. Bitte warte, bis du aufgerufen wirst.';
     show('booth',
       h('div', { class: 'locked' },
-        h('div', { class: 'big' }, '🗳️'),
+        schoolMark(),
         h('h1', {}, cur ? cur.e.title : 'Klassensprecherwahl'),
+        schoolNameEl(),
         h('p', {}, text),
         cur && cur.e.status !== 'closed' ? h('p', { class: 'counter' }, '🗳️ ' + countText(cur.e, cur.t.ballots)) : null,
         settings.showHint ? h('p', { class: 'hint' }, 'Lehrkraft: Wahlurnen-Symbol oben links etwa 2 Sekunden gedrückt halten, dann Code eingeben.') : null,
@@ -360,7 +395,9 @@
     var beginText = 'Mit Code öffnen';
     show('start',
       h('div', { class: 'start' },
-        h('h1', {}, '🗳️ Klassensprecherwahl'),
+        settings.schoolLogo ? schoolMark() : null,
+        h('h1', {}, (settings.schoolLogo ? '' : '🗳️ ') + 'Klassensprecherwahl'),
+        schoolNameEl(),
         h('p', { class: 'lead' }, 'Hauptgerät für die Lehrkraft'),
         h('button', { class: 'btn btn-big', onclick: chooseTeacher }, beginText),
         h('div', { class: 'spacer' }), h('div', { class: 'spacer' }),
@@ -429,6 +466,8 @@
       h('div', { class: 'topbar' },
         h('h1', {}, '🔧 Weitere Einstellungen'),
         h('button', { class: 'btn btn-secondary btn-small', onclick: homeView }, '← Zurück')),
+      h('h2', {}, 'Schule (optional)'),
+      schoolCard(),
       h('h2', {}, 'Anzeige und Vorlesen'),
       a11yCard(),
       h('h2', {}, 'Probemodus'),
@@ -443,6 +482,29 @@
       h('div', { class: 'card' },
         h('p', {}, 'Entfernt alle Wahlen, Fotos, Stimmen, Listen und den Code von diesem Gerät.'),
         h('button', { class: 'btn btn-danger', onclick: deleteAll }, 'Alles löschen')));
+  }
+
+  // Schulname und Logo: erscheinen auf dem Startbildschirm, in der Wahlkabine, im Countdown und im Export
+  function schoolCard() {
+    var status = h('p', { class: 'muted' }, '');
+    var nameInput = h('input', { type: 'text', value: settings.schoolName || '', placeholder: 'z. B. Grundschule am Park', autocomplete: 'off',
+      onchange: async function (ev) { settings.schoolName = ev.target.value.trim(); await saveSettings(); status.textContent = 'Gespeichert.'; } });
+    var file = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: async function (ev) {
+      var f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+      try { settings.schoolLogo = await resizeLogo(f); await saveSettings(); settingsView(); }
+      catch (err) { status.textContent = err.message; }
+    } });
+    return h('div', { class: 'card' },
+      h('label', { class: 'field' }, 'Name der Schule'),
+      nameInput,
+      h('label', { class: 'field' }, 'Logo'),
+      settings.schoolLogo ? h('img', { class: 'school-logo small', src: settings.schoolLogo, alt: 'Schullogo' }) : h('p', { class: 'muted' }, 'Noch kein Logo.'),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn btn-secondary', onclick: function () { file.click(); } }, settings.schoolLogo ? '🖼️ Anderes Logo wählen' : '🖼️ Logo hochladen'),
+        settings.schoolLogo ? h('button', { class: 'btn btn-secondary', onclick: async function () { settings.schoolLogo = ''; await saveSettings(); settingsView(); } }, 'Logo entfernen') : null),
+      file, status,
+      h('p', { class: 'muted' }, 'Beides ist freiwillig. Die App funktioniert auch ohne. Logo und Name bleiben auf deinen Geräten und werden nur an die Wahlkabinen weitergegeben.'));
   }
 
   // Einstellungen für Barrierefreiheit: große Schrift, hoher Kontrast, Vorlesen
@@ -925,7 +987,7 @@
       id: e.id, title: e.title, mode: e.mode, allowDouble: e.allowDouble, voterCount: e.voterCount,
       groupNames: e.groupNames, parityGroups: e.parityGroups,
       candidates: e.candidates.map(function (c) { return { id: c.id, name: c.name, group: c.group, photo: c.photo }; })
-    } });
+    }, school: { name: settings.schoolName || '', logo: settings.schoolLogo || '' } });
   }
   function anyVoting() { return slots.some(function (s) { return s && (s.state === 'voting' || s.state === 'warn'); }); }
 
@@ -1232,8 +1294,9 @@
     var text = !cur ? 'Es ist noch keine Wahl übertragen.' : cur.e.status === 'closed' ? 'Die Wahl ist beendet.' : 'Die Wahlkabine ist gesperrt. Bitte warte, bis du aufgerufen wirst.';
     show('booth',
       h('div', { class: 'locked' },
-        h('div', { class: 'big' }, '🗳️'),
+        schoolMark(),
         h('h1', {}, cur ? cur.e.title : 'Wahlkabine'),
+        schoolNameEl(),
         h('p', {}, text),
         open ? null : h('div', {},
           h('p', { class: 'warn' }, '⚠️ Keine Verbindung zum Hauptgerät.'),
@@ -1271,6 +1334,8 @@
       return { id: String(c.id), name: String(c.name || ''), group: Number(c.group) || 0, photo: typeof c.photo === 'string' && /^data:image\//.test(c.photo) ? c.photo : '' };
     });
     if (L.validate(e).length) return;
+    var sc = m.school || {};
+    kabSchool = { name: typeof sc.name === 'string' ? sc.name : '', logo: typeof sc.logo === 'string' && /^data:image\//.test(sc.logo) ? sc.logo : '' };
     cur = { e: e, t: L.newTally(), v: { id: e.id, list: [] }, remote: true };
     kab.link.send({ t: 'ready' });
     kabineLocked();
@@ -1619,6 +1684,7 @@
       h('div', { class: 'topbar' },
         h('h1', {}, (cur.practice ? 'Probeergebnis: ' : '🏆 ') + e.title),
         h('button', { class: 'btn btn-secondary btn-small', onclick: function () { resultView(); } }, '← Zurück')),
+      schoolHead(),
       Reveal.create(data, null, {
         // Ein Gleichstand erscheint genau dann, wenn der betroffene Platz aufgedeckt wird
         tieFor: function (title, rank) {
@@ -1635,7 +1701,7 @@
     var data = plainResults(L.computeResults(e, cur.t), true, settings.showPlaces);     // mit Fotos
     var name = e.title.replace(/[^A-Za-z0-9ÄÖÜäöüß-]+/g, '_');
     try {
-      var canvas = await ExportDoc.render(e.title, e.protocol ? e.protocol.closedAt : Date.now(), data);
+      var canvas = await ExportDoc.render(e.title, e.protocol ? e.protocol.closedAt : Date.now(), data, school());
       var blob = kind === 'pdf' ? ExportDoc.toPdfBlob(canvas) : await ExportDoc.toPngBlob(canvas);
       var file = name + (kind === 'pdf' ? '.pdf' : '.png');
       var r = how === 'share' ? await ExportDoc.share(blob, file, e.title) : await ExportDoc.saveLocal(blob, file);

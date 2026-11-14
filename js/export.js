@@ -20,7 +20,8 @@
   }
 
   // Seite zeichnen. Enthält die Ergebnisse (rows) Fotos (row.photo), werden sie neben den Namen gezeigt.
-  async function render(title, dateMs, results) {
+  // school (optional): { name, logo } erscheint oben auf der Seite
+  async function render(title, dateMs, results, school) {
     var withPhotos = results.some(function (r) { return r.rows.some(function (x) { return x.photo; }); });
     var imgs = {};
     if (withPhotos) {
@@ -28,31 +29,40 @@
       results.forEach(function (r, b) { r.rows.forEach(function (x, i) { if (x.photo) jobs.push(loadImg(x.photo).then(function (im) { imgs[b + '-' + i] = im; })); }); });
       await Promise.all(jobs);
     }
+    school = school || {};
+    var logoImg = school.logo ? await loadImg(school.logo) : null;
+    var extra = (logoImg ? 150 : 0) + (school.name ? 60 : 0);        // Platz für Logo und Schulname oben
     var c = document.createElement('canvas');
     c.width = W; c.height = H;
     var g = c.getContext('2d');
     g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
     g.fillStyle = '#111'; g.textBaseline = 'alphabetic';
+    var sy = 40;
+    if (logoImg) {
+      var lk = Math.min(130 / logoImg.height, 420 / logoImg.width), lw = logoImg.width * lk, lh = logoImg.height * lk;
+      g.drawImage(logoImg, (W - lw) / 2, sy, lw, lh); sy += 150;
+    }
+    if (school.name) { g.textAlign = 'center'; g.fillStyle = '#333'; g.font = '600 40px ' + FONT; g.fillText(school.name, W / 2, sy + 32); g.fillStyle = '#111'; }
 
     // Titel (verkleinern, wenn er zu lang ist)
     var size = 72;
     g.font = '700 ' + size + 'px ' + FONT;
     while (g.measureText(title).width > W - 200 && size > 30) { size -= 2; g.font = '700 ' + size + 'px ' + FONT; }
     g.textAlign = 'center';
-    g.fillText(title, W / 2, 170);
+    g.fillText(title, W / 2, 170 + extra);
     g.font = '400 36px ' + FONT; g.fillStyle = '#444';
-    g.fillText('Datum: ' + new Date(dateMs).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }), W / 2, 235);
-    g.fillStyle = '#999'; g.fillRect(100, 275, W - 200, 3);
+    g.fillText('Datum: ' + new Date(dateMs).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }), W / 2, 235 + extra);
+    g.fillStyle = '#999'; g.fillRect(100, 275 + extra, W - 200, 3);
 
     // Zeilenhöhe so wählen, dass alles auf die Seite passt
     var lines = 0;
     results.forEach(function (r) { lines += r.rows.length + (r.abstentions != null ? 1 : 0) + (r.title ? 2 : 1); });
-    var avail = (H - 275 - 200) / Math.max(lines, 1);
+    var avail = (H - 275 - extra - 200) / Math.max(lines, 1);
     var rowH = withPhotos ? Math.max(56, Math.min(120, avail)) : Math.max(34, Math.min(72, avail));
     var fs = Math.round(rowH * (withPhotos ? 0.42 : 0.55));
     var ps = Math.round(rowH * 0.86);                      // Fotogröße
     var nameX = withPhotos ? 170 + ps + 24 : 190;
-    var y = 275 + rowH * 1.1;
+    var y = 275 + extra + rowH * 1.1;
 
     results.forEach(function (r, b) {
       if (r.title) {
