@@ -243,6 +243,42 @@
     pushState();
   }
 
+  /* ---------- Vollbild und Geführter Zugriff (Schutz der Wahlkabine) ---------- */
+  function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  async function toggleFullscreen() {
+    var el = document.documentElement;
+    var req = el.requestFullscreen || el.webkitRequestFullscreen;
+    var exit = document.exitFullscreen || document.webkitExitFullscreen;
+    var standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+    if (standalone) { await info('Schon im Vollbild', 'Die App läuft vom Home-Bildschirm und ist bereits im Vollbild.'); return; }
+    if (!req) {
+      await info('Vollbild geht hier nicht', null, [
+        'Dieser Browser bietet kein Vollbild für Webseiten an (zum Beispiel iPhone).',
+        'Tipp: Teilen-Symbol → „Zum Home-Bildschirm“. Von dort gestartet läuft die App im Vollbild.']);
+      return;
+    }
+    try {
+      if (isFullscreen()) await exit.call(document); else await req.call(el);
+    } catch (err) {
+      await info('Vollbild nicht möglich', 'Der Browser hat das Vollbild abgelehnt. Bitte noch einmal tippen.');
+    }
+    if (currentView === 'booth') { /* Knopfbeschriftung neu zeichnen */ var b = document.getElementById('fsbtn'); if (b) b.textContent = isFullscreen() ? '⛶ Vollbild beenden' : '⛶ Vollbild'; }
+  }
+  function securityHelp() {
+    return info('Kabine sichern (Geführter Zugriff)', 'Der Geführte Zugriff sperrt das iPad auf diese Seite. Damit können die Kinder nichts anderes öffnen.', [
+      'Einmalig einrichten: Einstellungen → Bedienungshilfen → Geführter Zugriff → einschalten, einen Code für den Geführten Zugriff festlegen.',
+      'Starten: Diese Seite öffnen, dann die Seitentaste dreimal schnell drücken (iPad mit Home-Taste: Home-Taste dreimal).',
+      'Unten links „Optionen“: Tastatur aus, Berührung an. Tipp: Die Adressleiste oben mit dem Finger einkreisen, dann ist sie gesperrt. Dann „Fertig“ und „Starten“.',
+      'Beenden: Seitentaste dreimal drücken, Code für den Geführten Zugriff eingeben, „Beenden“.',
+      'Tipp: Davor „Vollbild“ antippen, dann ist die Adressleiste weg.']);
+  }
+  // Zwei kleine Knöpfe für den Wartebildschirm einer Kabine
+  function kioskButtons() {
+    return h('div', { class: 'kiosk row' },
+      h('button', { id: 'fsbtn', class: 'btn btn-secondary btn-small', onclick: toggleFullscreen }, isFullscreen() ? '⛶ Vollbild beenden' : '⛶ Vollbild'),
+      h('button', { class: 'btn btn-secondary btn-small', onclick: securityHelp }, '🔒 Kabine sichern'));
+  }
+
   // Kleines, unbeschriftetes Logo. Langes Tippen (1,5 Sekunden) öffnet die Code-Eingabe.
   function logoEl(onHold) {
     var timer = null;
@@ -267,7 +303,8 @@
         h('h1', {}, cur ? cur.e.title : 'Klassensprecherwahl'),
         h('p', {}, text),
         cur && cur.e.status !== 'closed' ? h('p', { class: 'counter' }, '🗳️ ' + countText(cur.e, cur.t.ballots)) : null,
-        settings.showHint ? h('p', { class: 'hint' }, 'Lehrkraft: Wahlurnen-Symbol oben links etwa 2 Sekunden gedrückt halten, dann Code eingeben.') : null),
+        settings.showHint ? h('p', { class: 'hint' }, 'Lehrkraft: Wahlurnen-Symbol oben links etwa 2 Sekunden gedrückt halten, dann Code eingeben.') : null,
+        kioskButtons()),
       logoEl());
   }
 
@@ -1186,7 +1223,7 @@
       h('div', { class: 'topbar' }, h('h1', {}, '🗳️ Wahlkabine verbinden'),
         h('button', { class: 'btn btn-secondary btn-small', onclick: function () { stop(); kab.link.close(); leaveToStart(); } }, 'Abbrechen')),
       h('p', { class: 'muted' }, 'Beide Geräte müssen im selben WLAN sein.'),
-      area, status);
+      area, status, kioskButtons());
   }
 
   // Gesperrter Wartebildschirm der Kabine
@@ -1201,7 +1238,8 @@
         open ? null : h('div', {},
           h('p', { class: 'warn' }, '⚠️ Keine Verbindung zum Hauptgerät.'),
           h('button', { class: 'btn', onclick: kabineConnectView }, 'Neu verbinden')),
-        settings.showHint ? h('p', { class: 'hint' }, 'Lehrkraft: Zum Beenden das Wahlurnen-Symbol oben links etwa 2 Sekunden gedrückt halten.') : null),
+        settings.showHint ? h('p', { class: 'hint' }, 'Lehrkraft: Zum Beenden das Wahlurnen-Symbol oben links etwa 2 Sekunden gedrückt halten.') : null,
+        kioskButtons()),
       logoEl(kabineExit));
   }
   async function kabineExit() {

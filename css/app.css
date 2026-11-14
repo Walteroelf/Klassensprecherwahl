@@ -255,3 +255,4 @@ html.a11y-contrast .next, html.a11y-contrast .tile { border: 3px solid #000; bac
 .vrow.sel { border-color: #2f5fd0; background: #e7eeff; font-weight: 700; }
 .pick-dialog { max-width: 760px; }
 .pick-dialog .vlist { margin: 14px 0; text-align: left; }
+.kiosk { justify-content: center; margin-top: 18px; }

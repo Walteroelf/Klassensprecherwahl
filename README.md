@@ -97,9 +97,14 @@ Hinweise:
 - **Verbindung weg** (iPad eingeschlafen, App neu geladen): Die Kabine zeigt „Keine Verbindung“ und muss neu verbunden werden (Schritt 1 bis 3 für diese Kabine). Eine nicht abgeschickte Stimme geht dabei verloren, das Kind wählt nach erneutem Freischalten noch einmal. Eine Stimme zählt erst, wenn die Kabine „Danke“ zeigt.
 - Bei den iPads am besten die **automatische Sperre** ausschalten (Einstellungen → Anzeige & Helligkeit → Automatische Sperre → Nie) und den Geführten Zugriff nutzen (nächster Abschnitt).
 
-## 6. Geführten Zugriff einrichten
+## 6. Vollbild und Geführter Zugriff (Wahlkabine sichern)
 
-Der Geführte Zugriff sperrt das iPad auf die Wahl-App: Home-Taste, App-Wechsel und Seitenwechsel funktionieren dann nicht mehr.
+Auf dem Wartebildschirm der Wahlkabine (und beim Verbinden) gibt es zwei Knöpfe:
+
+- **⛶ Vollbild:** blendet die Adressleiste von Safari aus (iPad und Mac). Noch einmal tippen beendet das Vollbild. Wurde die Kabine über den Link geöffnet, ist das der Weg zur sauberen Ansicht. Eine App vom Home-Bildschirm ist ohnehin im Vollbild. Auf dem iPhone gibt es für Webseiten kein Vollbild.
+- **🔒 Kabine sichern:** zeigt die Schritte für den Geführten Zugriff (siehe unten).
+
+Der Geführte Zugriff sperrt das iPad auf eine Seite: Home-Taste, App-Wechsel und Seitenwechsel funktionieren dann nicht mehr. Die Web-App kann ihn nicht selbst einschalten, das macht iOS.
 
 **Einmal einrichten:**
 
@@ -109,13 +114,13 @@ Der Geführte Zugriff sperrt das iPad auf die Wahl-App: Home-Taste, App-Wechsel 
 
 **Vor der Wahl starten:**
 
-1. Die Wahl-App vom Home-Bildschirm öffnen (Wartebildschirm sichtbar).
+1. Die Wahlkabine öffnen (Wartebildschirm sichtbar), am besten erst **⛶ Vollbild** antippen.
 2. Die **Seitentaste dreimal schnell drücken** (bei iPads mit Home-Taste: die Home-Taste dreimal).
-3. Unten links **Optionen** antippen, **Tastatur** ausschalten, **Berührung** an lassen → **Fertig** → **Starten**.
+3. Unten links **Optionen** antippen, **Tastatur** ausschalten, **Berührung** an lassen. In Safari die Adressleiste oben mit dem Finger **einkreisen**, dann ist sie gesperrt. → **Fertig** → **Starten**.
 
-**Beenden:** Seitentaste (oder Home-Taste) dreimal drücken, Code für Geführten Zugriff eingeben, **Beenden** antippen.
+**Beenden:** Seitentaste (oder Home-Taste) dreimal drücken, Code für den Geführten Zugriff eingeben, **Beenden** antippen.
 
-Den Lehrerbereich der Wahl-App erreichst du auch im Geführten Zugriff über das Logo und den Wahl-Code.
+Die Kabine selbst beendest du mit dem Wahlurnen-Symbol oben links (2 Sekunden halten). Im Geführten Zugriff ist das ebenfalls möglich, es braucht aber keinen Code. Kinder könnten es versuchen. Wer das verhindern will, kreist das Symbol im Geführten Zugriff ebenfalls ein.
 
 ## 7. Schutz vor Manipulation
 
