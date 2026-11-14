@@ -220,3 +220,8 @@ html.a11y-contrast .next, html.a11y-contrast .tile { border: 3px solid #000; bac
 .slot.idle, .slot.voted { border-left: 8px solid #2e9e5b; }
 .slot.offline, .slot.connecting { border-left: 8px solid #b6bccb; }
 .counter { font-size: 22px; font-weight: 700; margin-top: 18px; }
+
+/* Kamera-Fenster für Kandidatenfotos */
+.cam-dialog { max-width: 640px; width: 94vw; }
+.cam-video { width: 100%; max-height: 60vh; border-radius: 12px; background: #000; object-fit: cover; aspect-ratio: 4 / 3; }
+.cam-video.mirror { transform: scaleX(-1); }

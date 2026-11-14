@@ -130,7 +130,7 @@ Danach sind Wahlen, Kandidaten, Fotos, Wählerlisten, Stimmen, Protokolle, Einst
 
 ## 9. Wenn etwas nicht klappt
 
-- **Foto-Aufnahme geht nicht:** In Safari/iPad-Einstellungen den Kamerazugriff erlauben.
+- **Foto-Aufnahme geht nicht:** „Foto aufnehmen“ öffnet die Live-Kamera (Mac und iPad, mit „Kamera wechseln“ für Front- und Rückkamera). Dafür muss der Browser den Kamerazugriff erlauben (Safari: Einstellungen für diese Website → Kamera → Erlauben). Sonst bleibt „Aus Mediathek“.
 - **Kabine verbindet nicht:** Gleiches WLAN? Client-Isolation? Kamera erlaubt? Der QR-Code wird besser gelesen, wenn er groß und ruhig im Bild steht und der Bildschirm nicht spiegelt (Helligkeit hoch). Sonst „Ohne Kamera“ den Text kopieren. Beide Seiten neu laden und noch einmal koppeln.
 - **Alte Version auf dem iPad:** App vom Home-Bildschirm entfernen, in Safari die Seite neu öffnen und erneut zum Home-Bildschirm hinzufügen (oder `CACHE` in `sw.js` erhöhen).
 

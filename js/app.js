@@ -564,6 +564,46 @@
     }
   }
 
+  // Kamera-Fenster mit Live-Bild. Liefert ein Bild (File) oder null (Abbrechen).
+  function cameraDialog() {
+    return new Promise(function (resolve, reject) {
+      var stream = null, facing = 'user', closed = false;
+      var video = h('video', { class: 'cam-video', playsinline: true, muted: true });
+      var msg = h('p', { class: 'muted' }, 'Kamera wird gestartet …');
+      var shot = h('button', { class: 'btn btn-big btn-green', disabled: true, onclick: capture }, '📸 Foto aufnehmen');
+      var flip = h('button', { class: 'btn btn-secondary', onclick: function () { facing = facing === 'user' ? 'environment' : 'user'; begin(); } }, '🔄 Kamera wechseln');
+      var overlay = h('div', { class: 'overlay', role: 'dialog', 'aria-modal': 'true' },
+        h('div', { class: 'dialog cam-dialog' }, h('h2', {}, 'Foto aufnehmen'), video, msg,
+          shot, h('div', { class: 'row' }, flip, h('button', { class: 'btn btn-secondary', onclick: function () { done(null); } }, 'Abbrechen'))));
+      document.body.append(overlay);
+
+      function stop() { if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; } video.srcObject = null; }
+      function done(file, err) { if (closed) return; closed = true; stop(); overlay.remove(); if (err) reject(err); else resolve(file); }
+      async function begin() {
+        stop(); shot.disabled = true; msg.textContent = 'Kamera wird gestartet …';
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false });
+          if (closed) { stop(); return; }
+          video.srcObject = stream; video.muted = true; video.setAttribute('playsinline', '');
+          await video.play();
+          video.classList.toggle('mirror', facing === 'user');      // Selfie-Ansicht wie im Spiegel
+          msg.textContent = 'Halte die Person in die Mitte des Bildes.'; shot.disabled = false;
+        } catch (err) {
+          done(null, new Error('Die Kamera ist nicht verfügbar. Bitte den Zugriff erlauben oder „Aus Mediathek“ nutzen.'));
+        }
+      }
+      function capture() {
+        var w = video.videoWidth, hh = video.videoHeight;
+        if (!w) return;
+        var cv = document.createElement('canvas');
+        cv.width = w; cv.height = hh;
+        cv.getContext('2d').drawImage(video, 0, 0, w, hh);
+        cv.toBlob(function (blob) { done(blob ? new File([blob], 'foto.jpg', { type: 'image/jpeg' }) : null); }, 'image/jpeg', 0.92);
+      }
+      begin();
+    });
+  }
+
   function candidateView(e, ctx, isNew, existing) {
     if (!requireTeacher()) return;
     var c = existing ? Object.assign({}, existing) : { id: L.uid(), name: '', group: 0, photo: '' };
@@ -580,7 +620,22 @@
         status.textContent = 'Foto übernommen.';
       } catch (err) { status.textContent = err.message; }
     }
-    var cam = h('input', { type: 'file', accept: 'image/*', capture: 'user', hidden: true, onchange: onFile });
+    var cam = h('input', { type: 'file', accept: 'image/*', capture: 'user', hidden: true, onchange: onFile });   // Notlösung ohne Live-Kamera
+    // Live-Kamera: funktioniert auf dem Mac und auf dem iPad; sonst die Notlösung oben
+    async function takePhoto() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { cam.click(); return; }
+      status.textContent = '';
+      var file;
+      try { file = await cameraDialog(); }
+      catch (err) { status.textContent = err.message; return; }
+      if (!file) return;
+      status.textContent = 'Foto wird verkleinert …';
+      try {
+        c.photo = await resizePhoto(file);
+        Dom.mount(preview, photoEl(c));
+        status.textContent = 'Foto übernommen.';
+      } catch (err) { status.textContent = err.message; }
+    }
     var lib = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: onFile });
 
     show('candidate',
@@ -596,7 +651,7 @@
       h('label', { class: 'field' }, 'Foto'),
       preview,
       h('div', { class: 'row' },
-        h('button', { class: 'btn btn-secondary', onclick: function () { cam.click(); } }, '📷 Foto aufnehmen'),
+        h('button', { class: 'btn btn-secondary', onclick: takePhoto }, '📷 Foto aufnehmen'),
         h('button', { class: 'btn btn-secondary', onclick: function () { lib.click(); } }, '🖼️ Aus Mediathek')),
       cam, lib, status,
       h('div', { class: 'spacer' }),
