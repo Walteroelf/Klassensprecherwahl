@@ -225,3 +225,24 @@ html.a11y-contrast .next, html.a11y-contrast .tile { border: 3px solid #000; bac
 .cam-dialog { max-width: 640px; width: 94vw; }
 .cam-video { width: 100%; max-height: 60vh; border-radius: 12px; background: #000; object-fit: cover; aspect-ratio: 4 / 3; }
 .cam-video.mirror { transform: scaleX(-1); }
+
+/* Countdown: aktueller Platz groß oben, Weiter-Knopf immer sichtbar */
+.reveal { padding-bottom: 130px; }
+.reveal .stage { background: #fff; border-radius: 28px; padding: 24px 18px; text-align: center; margin: 12px 0; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+.reveal .stage.win { background: #e6f6ec; }
+.reveal .stage .big { font-size: 90px; }
+.reveal .place { font-size: 44px; font-weight: 800; color: var(--blue-dark, #1e46a6); }
+.reveal .gtag { font-size: 26px; font-weight: 700; color: #556; margin-bottom: 4px; }
+.reveal .sname { font-size: 56px; font-weight: 800; margin: 10px 0 2px; overflow-wrap: anywhere; }
+.reveal .svotes { font-size: 34px; font-weight: 600; }
+.reveal .photo-big { width: 220px; height: 220px; border-radius: 24px; margin: 12px auto; object-fit: cover; display: flex; align-items: center; justify-content: center; font-size: 90px; }
+.reveal .earlier { margin-top: 14px; }
+.reveal-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); background: rgba(243,245,252,.97); box-shadow: 0 -4px 16px rgba(0,0,0,.12); display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; z-index: 20; }
+.reveal-bar .btn-big { width: auto; min-width: 280px; }
+/* Kandidaten: Gruppen als Knöpfe nebeneinander */
+.seg { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 12px; }
+.seg button { flex: 1 1 0; min-width: 110px; padding: 14px 12px; border-radius: 14px; border: 2px solid var(--line, #cdd3e6); background: #fff; font-size: 20px; font-weight: 600; cursor: pointer; }
+.seg button.on { background: #2f5fd0; border-color: #2f5fd0; color: #fff; }
+.cand .seg { margin: 4px 0 0; }
+.cand .seg button { padding: 6px 10px; font-size: 16px; min-width: 70px; }
+.places { margin: 8px 0 14px; }

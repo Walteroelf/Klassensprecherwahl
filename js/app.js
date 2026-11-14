@@ -114,7 +114,7 @@
 
   /* ---------- Zustand ---------- */
   var elections = [];          // alle gespeicherten Wahlen
-  var settings = { id: 'settings', boardEnabled: false, activeId: null, bigText: false, contrast: false, speech: false, showHint: true, role: null };
+  var settings = { id: 'settings', boardEnabled: false, activeId: null, bigText: false, contrast: false, speech: false, showHint: true, role: null, showPlaces: 3 };
   var cur = null;              // aktuelle Wahl: { e, t (Stimmenstand), v (Wählerliste), practice? }
   var practice = null;         // Probemodus: lebt NUR im Arbeitsspeicher, wird nie gespeichert
   var previewing = false;      // Kandidaten-Vorschau läuft
@@ -475,11 +475,49 @@
       return sel;
     };
 
+    // Gruppenwahl als Knöpfe nebeneinander (kein Dropdown)
+    function groupButtons(c) {
+      var box = h('div', { class: 'seg' });
+      e.groupNames.forEach(function (n, g) {
+        box.append(h('button', { type: 'button', class: c.group === g ? 'on' : '', onclick: function () {
+          c.group = g;
+          [].forEach.call(box.children, function (b, i) { b.classList.toggle('on', i === g); });
+        } }, n));
+      });
+      return box;
+    }
+    var names = function () { return (ctx.voters || '').split('\n').map(function (x) { return x.trim(); }).filter(Boolean); };
+    var countEl = h('p', { class: 'voter-count' }, '');
+    function updCount() {
+      var n = names().length;
+      if (n) countEl.textContent = 'Wähler: ' + n + ' (wird automatisch gezählt)';
+      else if (!ctx.votersTouched && e.voterCount > 0) countEl.textContent = 'Wähler: ' + e.voterCount + ' (ohne Namensliste)';
+      else countEl.textContent = 'Noch keine Wähler eingetragen. Dann gibt es keine Obergrenze, und du schließt die Wahl selbst ab.';
+    }
+    updCount();
+
     show('setup',
       h('div', { class: 'topbar' }, h('h1', {}, isNew ? 'Neue Wahl' : 'Wahl bearbeiten')),
 
       h('label', { class: 'field' }, 'Titel der Wahl'),
       h('input', { type: 'text', value: e.title, oninput: function (ev) { e.title = ev.target.value; } }),
+
+      h('h2', {}, 'Kandidaten (' + e.candidates.length + ')'),
+      h('div', { class: 'card' },
+        h('button', { class: 'btn btn-green btn-block', onclick: function () { candidateView(e, ctx, isNew, null); } }, '＋ Kandidat hinzufügen'),
+        e.candidates.length ? h('div', { class: 'spacer' }) : null,
+        e.candidates.length ? e.candidates.map(function (c) {
+          return h('div', { class: 'cand' },
+            photoEl(c, 'thumb'),
+            h('div', { class: 'name' }, c.name, e.mode === 'group' ? groupButtons(c) : null),
+            h('button', { class: 'btn btn-secondary btn-small', onclick: function () { candidateView(e, ctx, isNew, c); } }, 'Ändern'),
+            h('button', { class: 'btn btn-secondary btn-small', onclick: async function () {
+              if (await dialog({ title: c.name + ' entfernen?', ok: 'Entfernen', danger: true })) {
+                e.candidates = e.candidates.filter(function (x) { return x !== c; });
+                again();
+              }
+            } }, 'Entfernen'));
+        }) : h('p', { class: 'muted' }, 'Noch keine Kandidaten.')),
 
       h('h2', {}, 'Wahlmodus'),
       modeChoice('single', 'Eine Stimme', 'Jeder Wähler wählt genau eine Person.'),
@@ -491,7 +529,7 @@
 
       e.mode === 'group' ? h('div', {},
         h('h2', {}, 'Gruppen'),
-        h('p', { class: 'muted' }, 'Jedes Kind wird einer Gruppe zugeordnet. Die Kinder wählen je Gruppe eine Person.'),
+        h('p', { class: 'muted' }, 'Jedes Kind wird einer Gruppe zugeordnet (oben bei den Kandidaten). Die Kinder wählen je Gruppe eine Person.'),
         e.groupNames.map(function (n, g) {
           var last = g === e.groupNames.length - 1;
           return h('div', {},
@@ -515,32 +553,11 @@
           h('label', { class: 'field' }, 'Erste Seite in der Wahlkabine'), groupSelect(0),
           h('label', { class: 'field' }, 'Zweite Seite in der Wahlkabine'), groupSelect(1)) : null) : null,
 
-      h('h2', {}, 'Kandidaten (' + e.candidates.length + ')'),
-      h('div', { class: 'card' },
-        h('button', { class: 'btn btn-green btn-block', onclick: function () { candidateView(e, ctx, isNew, null); } }, '＋ Kandidat hinzufügen'),
-        e.candidates.length ? h('div', { class: 'spacer' }) : null,
-        e.candidates.length ? e.candidates.map(function (c) {
-          return h('div', { class: 'cand' },
-            photoEl(c, 'thumb'),
-            h('div', { class: 'name' }, c.name, e.mode === 'group' ? h('div', { class: 'small' }, e.groupNames[c.group]) : null),
-            h('button', { class: 'btn btn-secondary btn-small', onclick: function () { candidateView(e, ctx, isNew, c); } }, 'Ändern'),
-            h('button', { class: 'btn btn-secondary btn-small', onclick: async function () {
-              if (await dialog({ title: c.name + ' entfernen?', ok: 'Entfernen', danger: true })) {
-                e.candidates = e.candidates.filter(function (x) { return x !== c; });
-                again();
-              }
-            } }, 'Entfernen'));
-        }) : h('p', { class: 'muted' }, 'Noch keine Kandidaten.')),
-
       h('h2', {}, 'Wähler'),
-      h('label', { class: 'field' }, 'Anzahl der Wähler'),
-      h('input', { type: 'number', inputmode: 'numeric', min: '1', placeholder: 'leer = unbekannt', value: e.voterCount || '', oninput: function (ev) { e.voterCount = parseInt(ev.target.value, 10) || 0; } }),
-      h('p', { class: 'muted' }, 'Optional. Wenn du die Zahl nicht kennst, lass das Feld leer: Dann gibt es keine Obergrenze, und du schließt die Wahl selbst ab. Ist eine Zahl eingetragen, werden nie mehr Stimmzettel angenommen.'),
-      h('details', {},
-        h('summary', {}, 'Wählerliste zum Abhaken (optional)'),
-        h('label', { class: 'field' }, 'Ein Name pro Zeile'),
-        h('textarea', { oninput: function (ev) { ctx.voters = ev.target.value; } }, ctx.voters),
-        h('p', { class: 'muted' }, 'Die Liste dient nur zum Abhaken. Sie ist von den Stimmen getrennt und wird beim Abschluss der Wahl gelöscht.')),
+      h('label', { class: 'field' }, 'Wählerliste: ein Name pro Zeile (optional)'),
+      h('textarea', { oninput: function (ev) { ctx.voters = ev.target.value; ctx.votersTouched = true; e.voterCount = names().length; updCount(); } }, ctx.voters),
+      countEl,
+      h('p', { class: 'muted' }, 'Die Zahl der Wähler ergibt sich aus der Liste. Mit Liste werden nie mehr Stimmzettel angenommen, als Namen eingetragen sind, und du kannst die Kinder beim Wählen abhaken. Die Liste ist von den Stimmen getrennt und wird beim Abschluss der Wahl gelöscht.'),
 
       h('div', { class: 'spacer' }),
       h('div', { class: 'row' },
@@ -550,18 +567,16 @@
 
   async function saveSetup(e, ctx, isNew) {
     e.title = (e.title || '').trim() || 'Klassensprecherwahl';
+    var names = (ctx.voters || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+    if (names.length || ctx.votersTouched) e.voterCount = names.length;     // Wählerzahl = Zahl der Namen (0 = unbekannt)
     await DB.put('elections', e);
     if (isNew) await DB.put('tallies', Object.assign({ id: e.id }, L.newTally()));
-    var names = ctx.voters.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
     var oldDone = {};
     if (!isNew && cur) cur.v.list.forEach(function (p) { oldDone[p.name] = p.done; });
     await DB.put('voters', { id: e.id, list: names.map(function (n) { return { name: n, done: !!oldDone[n] }; }) });
     if (!settings.activeId) { settings.activeId = e.id; await saveSettings(); }
     await loadAll();
     await openElection(e.id);
-    if (names.length && e.voterCount && names.length !== e.voterCount) {
-      await info('Hinweis', null, ['Die Wählerliste hat ' + names.length + ' Namen, eingetragen sind aber ' + e.voterCount + ' Wähler.']);
-    }
   }
 
   // Kamera-Fenster mit Live-Bild. Liefert ein Bild (File) oder null (Abbrechen).
@@ -644,9 +659,14 @@
       h('input', { type: 'text', value: c.name, autocomplete: 'off', oninput: function (ev) { c.name = ev.target.value; } }),
       e.mode === 'group' ? h('label', { class: 'field' }, 'Gruppe') : null,
       e.mode === 'group' ? (function () {
-        var sel = h('select', { onchange: function () { c.group = Number(sel.value); } },
-          e.groupNames.map(function (n, g) { return h('option', { value: g, selected: c.group === g }, n); }));
-        return sel;
+        var box = h('div', { class: 'seg' });
+        e.groupNames.forEach(function (n, g) {
+          box.append(h('button', { type: 'button', class: c.group === g ? 'on' : '', onclick: function () {
+            c.group = g;
+            [].forEach.call(box.children, function (b, i) { b.classList.toggle('on', i === g); });
+          } }, n));
+        });
+        return box;
       })() : null,
       h('label', { class: 'field' }, 'Foto'),
       preview,
@@ -659,7 +679,7 @@
         h('button', { class: 'btn btn-green grow', onclick: async function () {
           c.name = c.name.trim();
           if (!c.name) { await info('Name fehlt', 'Bitte einen Namen eintragen.'); return; }
-          if (existing) e.candidates[e.candidates.indexOf(existing)] = c; else e.candidates.push(c);
+          if (existing) e.candidates[e.candidates.indexOf(existing)] = c; else e.candidates.unshift(c);   // neue Kandidaten stehen oben
           setupView(e, ctx, isNew);
         } }, 'Übernehmen'),
         h('button', { class: 'btn btn-secondary', onclick: function () { setupView(e, ctx, isNew); } }, 'Abbrechen')));
@@ -1346,19 +1366,14 @@
       settings.speech && speechAvailable() ? h('button', { class: 'speak', 'aria-label': 'Name vorlesen', onclick: function () { speak(c.name); } }, '🔊') : null);
   }
 
-  // Kandidaten-Vorschau: jedes Kind prüft Foto und Namen. Hier wird nichts gewählt.
-  // "Fertig" führt zurück in die gesperrte Wahlkabine, nicht in den Lehrerbereich.
+  // Kandidaten zeigen: nur Fotos und Namen, ohne die Wahlkabine zu starten.
   function candidatePreview() {
     if (!requireTeacher()) return;
-    teacherAuthed = false; previewing = true; booth = null;
-    pushState();
     var list = cur.e.candidates.slice().sort(function (a, b) { return a.name.localeCompare(b.name, 'de'); });
-    show('booth',
-      h('div', { class: 'booth' },
-        h('div', { class: 'booth-head' }, h('h1', {}, 'Kandidaten-Vorschau'),
-          h('div', { class: 'muted' }, 'Prüfe dein Foto und deinen Namen. Hier wird nicht gewählt.')),
-        h('div', { class: 'grid' }, list.map(function (c) { return candTile(c, function () { speak(c.name); }, false); })),
-        h('div', { class: 'abstain' }, h('button', { class: 'btn btn-big', onclick: boothHome }, 'Fertig'))));
+    show('preview',
+      h('div', { class: 'topbar' }, h('h1', {}, 'Kandidaten'),
+        h('button', { class: 'btn btn-secondary btn-small', onclick: menuView }, '← Zurück')),
+      h('div', { class: 'booth' }, h('div', { class: 'grid' }, list.map(function (c) { return candTile(c, function () { speak(c.name); }, false); }))));
   }
 
   // Der Wähler hat auf eine Person (oder "niemanden") getippt → erst Bestätigung per Pop-up
@@ -1404,13 +1419,33 @@
   }
 
   /* ---------- Ergebnis ---------- */
-  function resultView() {
+  // Gleichstand-Hinweise mit Stichwahl-Knopf (erst nach dem Countdown bzw. in der Lehrer-Ansicht)
+  function tiesBlock(res) {
+    var e = cur.e;
+    if (cur.practice) return null;
+    return L.findTies(res).map(function (tie) {
+      var existing = elections.filter(function (x) { return x.runoffOf && x.runoffOf.id === e.id && x.runoffOf.key === L.runoffKey(tie); })[0];
+      return h('div', { class: 'warn' },
+        h('strong', {}, 'Gleichstand' + (tie.title ? ' in Gruppe ' + tie.title : '') + ' um Platz ' + tie.rank + ': '),
+        tie.rows.map(function (r) { return r.candidate.name; }).join(', '),
+        h('div', { class: 'spacer' }),
+        existing ?
+          h('button', { class: 'btn btn-secondary', onclick: function () { openElection(existing.id); } }, 'Stichwahl ansehen') :
+          h('button', { class: 'btn', onclick: function () { startRunoff(tie); } }, 'Stichwahl starten'));
+    });
+  }
+
+  // Ergebnisseite: zuerst ist nichts zu sehen. Die Zahlen erscheinen nur im Countdown oder auf Wunsch der Lehrkraft.
+  function resultView(opts) {
     if (!requireTeacher()) return;
+    var full = !!(opts && opts.full === true);
     var e = cur.e, t = cur.t;
     var res = L.computeResults(e, t);
     var warnings = L.checkConsistency(e, t);
     var pr = e.protocol;
-    var ties = cur.practice ? [] : L.findTies(res);
+    var places = settings.showPlaces;
+    var PLACE_OPTS = [[1, 'Nur der Sieger'], [2, 'Platz 1 und 2'], [3, 'Platz 1 bis 3'], [0, 'Alle Plätze']];
+
     show('result',
       h('div', { class: 'topbar' },
         h('h1', {}, (cur.practice ? 'Probeergebnis: ' : '🏆 ') + e.title),
@@ -1418,6 +1453,11 @@
       h('p', { class: 'muted' }, limited(e) ? t.ballots + ' von ' + e.voterCount + ' Wählern haben abgestimmt.' : t.ballots + ' Stimmzettel abgegeben.'),
       warnings.length && !cur.practice ? h('div', { class: 'warn' }, '⚠️ ' + warnings.join(' ')) : null,
       h('div', { class: 'card' },
+        h('h2', {}, 'Welche Plätze sollen gezeigt werden?'),
+        h('div', { class: 'seg places' }, PLACE_OPTS.map(function (o) {
+          return h('button', { class: places === o[0] ? 'on' : '', onclick: async function () { settings.showPlaces = o[0]; await saveSettings(); resultView({ full: full }); } }, o[1]);
+        })),
+        h('p', { class: 'muted' }, 'Alle anderen Plätze bleiben verborgen, damit niemand bloßgestellt wird. Das gilt für Countdown, PDF und Bild.'),
         h('button', { class: 'btn btn-big', onclick: countdownView }, '🎉 Ergebnis-Countdown starten'),
         cur.practice ? null : h('div', {},
           h('div', { class: 'spacer' }),
@@ -1428,31 +1468,28 @@
         cur.practice ? h('div', {},
           h('div', { class: 'spacer' }),
           h('button', { class: 'btn btn-danger', onclick: discardPractice }, 'Probemodus beenden und Teststimmen löschen')) : null),
-      ties.map(function (tie) {
-        var existing = elections.filter(function (x) { return x.runoffOf && x.runoffOf.id === e.id && x.runoffOf.key === L.runoffKey(tie); })[0];
-        return h('div', { class: 'warn' },
-          h('strong', {}, 'Gleichstand' + (tie.title ? ' in Gruppe ' + tie.title : '') + ' um Platz ' + tie.rank + ': '),
-          tie.rows.map(function (r) { return r.candidate.name; }).join(', '),
-          h('div', { class: 'spacer' }),
-          existing ?
-            h('button', { class: 'btn btn-secondary', onclick: function () { openElection(existing.id); } }, 'Stichwahl ansehen') :
-            h('button', { class: 'btn', onclick: function () { startRunoff(tie); } }, 'Stichwahl starten'));
-      }),
-      res.map(function (r) {
-        return h('div', { class: 'card' },
-          r.title ? h('h2', {}, SPLIT + r.title) : null,
-          r.rows.map(function (row) {
-            return h('div', { class: 'res-row' + (row.rank === 1 && row.votes > 0 ? ' win' : '') },
-              h('div', { class: 'rank' }, row.rank + '.'),
-              photoEl(row.candidate),
-              h('div', { class: 'rname' }, row.candidate.name),
-              h('div', { class: 'votes' }, String(row.votes)));
-          }),
-          h('div', { class: 'res-row' },
-            h('div', { class: 'rank' }, '–'),
-            h('div', { class: 'rname' }, 'Enthaltungen'),
-            h('div', { class: 'votes' }, String(r.abstentions))));
-      }),
+
+      full ? h('div', {},
+        h('div', { class: 'warn' }, 'Nur für die Lehrkraft: Hier sind alle Zahlen sichtbar. Bitte nicht auf der Tafel zeigen.'),
+        tiesBlock(res),
+        res.map(function (r) {
+          return h('div', { class: 'card' },
+            r.title ? h('h2', {}, SPLIT + r.title) : null,
+            r.rows.map(function (row) {
+              return h('div', { class: 'res-row' + (row.rank === 1 && row.votes > 0 ? ' win' : '') },
+                h('div', { class: 'rank' }, row.rank + '.'),
+                photoEl(row.candidate),
+                h('div', { class: 'rname' }, row.candidate.name),
+                h('div', { class: 'votes' }, String(row.votes)));
+            }),
+            h('div', { class: 'res-row' },
+              h('div', { class: 'rank' }, '–'),
+              h('div', { class: 'rname' }, 'Enthaltungen'),
+              h('div', { class: 'votes' }, String(r.abstentions))));
+        }),
+        h('button', { class: 'btn btn-secondary', onclick: function () { resultView(); } }, 'Zahlen wieder verbergen')) :
+        h('button', { class: 'btn btn-secondary', onclick: function () { resultView({ full: true }); } }, '👁 Alle Zahlen ansehen (nur Lehrkraft)'),
+
       pr ? h('div', { class: 'card' },
         h('h2', {}, 'Wahlprotokoll'),
         h('p', {}, 'Freigeschaltete Wähler: ' + pr.unlocked),
@@ -1462,12 +1499,13 @@
         pr.warnings && pr.warnings.length ? h('p', { class: 'warn' }, '⚠️ ' + pr.warnings.join(' ')) : null) : null);
   }
 
-  // Ergebnisdaten ohne Kandidatenobjekte (für Tafel, Countdown und Export)
-  function plainResults(res, withPhotos) {
+  // Ergebnisdaten ohne Kandidatenobjekte (für Countdown und Export).
+  // maxRank > 0: nur Plätze bis zu diesem Rang, ohne Enthaltungen (niemand wird bloßgestellt).
+  function plainResults(res, withPhotos, maxRank) {
     return res.map(function (r) {
       return {
-        title: r.title, abstentions: r.abstentions,
-        rows: r.rows.map(function (x) {
+        title: r.title, abstentions: maxRank > 0 ? null : r.abstentions,
+        rows: r.rows.filter(function (x) { return !(maxRank > 0) || x.rank <= maxRank; }).map(function (x) {
           var row = { name: x.candidate.name, votes: x.votes, rank: x.rank };
           if (withPhotos) row.photo = x.candidate.photo;
           return row;
@@ -1479,17 +1517,18 @@
   function countdownView() {
     if (!requireTeacher()) return;
     var e = cur.e;
-    var data = plainResults(L.computeResults(e, cur.t), true);
+    var res = L.computeResults(e, cur.t);
+    var data = plainResults(res, true, settings.showPlaces);
     show('countdown',
       h('div', { class: 'topbar' },
         h('h1', {}, (cur.practice ? 'Probeergebnis: ' : '🏆 ') + e.title),
-        h('button', { class: 'btn btn-secondary btn-small', onclick: resultView }, '← Zurück')),
-      Reveal.create(data, null));
+        h('button', { class: 'btn btn-secondary btn-small', onclick: function () { resultView(); } }, '← Zurück')),
+      Reveal.create(data, null, { footer: function () { return tiesBlock(res); } }));
   }
 
   async function exportResult(kind) {
     var e = cur.e;
-    var data = plainResults(L.computeResults(e, cur.t), false);
+    var data = plainResults(L.computeResults(e, cur.t), false, settings.showPlaces);
     var canvas = ExportDoc.render(e.title, e.protocol ? e.protocol.closedAt : Date.now(), data);
     var name = e.title.replace(/[^A-Za-z0-9ÄÖÜäöüß-]+/g, '_');
     try {

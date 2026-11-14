@@ -29,7 +29,7 @@
 
     // Zeilenhöhe so wählen, dass alles auf die Seite passt
     var lines = 0;
-    results.forEach(function (r) { lines += r.rows.length + 1 + (r.title ? 2 : 1); });
+    results.forEach(function (r) { lines += r.rows.length + (r.abstentions != null ? 1 : 0) + (r.title ? 2 : 1); });
     var rowH = Math.max(34, Math.min(72, (H - 275 - 200) / Math.max(lines, 1)));
     var fs = Math.round(rowH * 0.55);
     var y = 275 + rowH * 1.1;
@@ -50,10 +50,13 @@
         g.fillText(String(row.votes), W - 100, y);
         y += rowH;
       });
-      g.fillStyle = '#555'; g.font = 'italic 400 ' + fs + 'px ' + FONT; g.textAlign = 'left';
-      g.fillText('Enthaltungen', 190, y);
-      g.textAlign = 'right'; g.fillText(String(r.abstentions), W - 100, y);
-      y += rowH * 1.4;
+      if (r.abstentions != null) {            // bei begrenzter Platzzahl werden die Enthaltungen nicht gezeigt
+        g.fillStyle = '#555'; g.font = 'italic 400 ' + fs + 'px ' + FONT; g.textAlign = 'left';
+        g.fillText('Enthaltungen', 190, y);
+        g.textAlign = 'right'; g.fillText(String(r.abstentions), W - 100, y);
+        y += rowH * 0.4;
+      }
+      y += rowH;
     });
 
     g.textAlign = 'center'; g.fillStyle = '#999'; g.font = '400 26px ' + FONT;

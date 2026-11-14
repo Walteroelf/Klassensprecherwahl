@@ -60,9 +60,9 @@ Ein iPad für die Kinder wird über den kleinen Knopf **Als Wahlkabine verwenden
 
 Das Hauptgerät führt dich in **drei Schritten**; oben steht immer „Als Nächstes: …“.
 
-1. **Wahl einrichten:** Neue Wahl anlegen mit Titel, Modus, Kandidaten mit Foto (Kamera oder Mediathek), Wählerzahl (**optional**: leer lassen, wenn du sie nicht kennst, dann gibt es keine Obergrenze und du schließt die Wahl selbst ab), optional Wählerliste. Die Gruppen-Einstellung erscheint nur im Modus „Eine Stimme je Gruppe“. Standard sind zwei Gruppen (Mädchen, Jungen); eine dritte und vierte Gruppe lassen sich optional hinzufügen.
+1. **Wahl einrichten:** Neue Wahl anlegen mit Titel, Modus, Kandidaten mit Foto (Kamera oder Mediathek), optional Wählerliste (ein Name pro Zeile). Die **Wählerzahl ergibt sich automatisch aus der Liste**. Ohne Liste gibt es keine Obergrenze, und du schließt die Wahl selbst ab. Neue Kandidaten erscheinen oben in der Liste; im Gruppenmodus wählst du die Gruppe mit Knöpfen nebeneinander. Die Gruppen-Einstellung erscheint nur im Modus „Eine Stimme je Gruppe“. Standard sind zwei Gruppen (Mädchen, Jungen); eine dritte und vierte Gruppe lassen sich optional hinzufügen.
 2. **Kinder wählen lassen:** *Kabinen verbinden und Wahl durchführen* (siehe Abschnitt 5).
-3. **Wahl abschließen:** Erst jetzt erscheint das Ergebnis mit Wahlprotokoll, Countdown, PDF/Bild und bei Gleichstand die Stichwahl.
+3. **Wahl abschließen:** Das Ergebnis ist zunächst **verdeckt**. Du legst fest, welche Plätze gezeigt werden (nur der Sieger, Platz 1 bis 2, 1 bis 3 oder alle), und startest den Countdown. Die Auswahl gilt auch für PDF und Bild. Alle Zahlen siehst nur du über *Alle Zahlen ansehen*. Dort stehen auch Gleichstand und Stichwahl.
 
 Ohne zweites Gerät geht es auch: Mit *Dieses Gerät als Wahlkabine* wird das Hauptgerät selbst zur gesperrten Kabine. Dort steht dann die Zahl der bisher abgegebenen Stimmzettel. Pro Kind: Wahlurnen-Symbol oben links 2 Sekunden halten, Code eingeben, *Nächstes Kind freischalten*.
 
@@ -146,7 +146,7 @@ Danach sind Wahlen, Kandidaten, Fotos, Wählerlisten, Stimmen, Protokolle, Einst
 - Endet auch die Stichwahl unentschieden, kannst du erneut eine Stichwahl starten.
 
 **Ergebnis-Countdown**
-- *Ergebnis-Countdown starten* im Ergebnis am Hauptgerät: Die Plätze werden von hinten nach vorn enthüllt, jeweils per Tippen auf **Weiter**. Mit **Alle sofort zeigen** überspringst du den Countdown.
+- *Ergebnis-Countdown starten* im Ergebnis am Hauptgerät: Die Plätze werden von hinten nach vorn enthüllt, jeweils per Tippen auf **Weiter**. Der gerade aufgedeckte Platz steht groß oben im Bild, der Weiter-Knopf bleibt unten sichtbar, gescrollt werden muss nicht. Mit **Alle sofort zeigen** überspringst du den Countdown.
 
 **Export für das Klassenbuch**
 - Im Ergebnis: **Als PDF** oder **Als Bild**. Das iPad öffnet das Teilen-Menü (Dateien, Drucken, Mail …). Der Export enthält nur Titel, Datum, Kandidaten und Summen, niemals Einzelstimmen. Das PDF enthält die Seite als Bild.
@@ -156,7 +156,7 @@ Danach sind Wahlen, Kandidaten, Fotos, Wählerlisten, Stimmen, Protokolle, Einst
 - **Vorlesen** liest Anweisungen, Namen und die Bestätigungsfrage vor. Es nutzt nur die Sprachausgabe des Geräts und nur auf dem Gerät gespeicherte deutsche Stimmen, keinen Online-Dienst. Fehlt eine deutsche Stimme, lässt sich die Option nicht einschalten: In den iPad-Einstellungen unter *Bedienungshilfen → Gesprochene Inhalte → Stimmen* eine deutsche Stimme laden. Bei eingeschaltetem Vorlesen hat jede Kandidatenkarte einen 🔊-Knopf.
 
 **Kandidaten-Vorschau**
-- In der Wahl, Schritt 1: *Kandidaten zeigen*. Jedes Kind prüft sein Foto und seinen Namen. Es wird nicht gewählt, und *Fertig* führt zurück in die gesperrte Kabine (nicht in den Lehrerbereich).
+- In der Wahl, Schritt 1: *Kandidaten zeigen*. Es erscheinen nur Fotos und Namen der Kandidaten (zum Prüfen oder Zeigen). Das Gerät wird dabei nicht zur Wahlkabine; *Zurück* führt in die Wahl.
 
 **Wählerliste mit Abhaken**
 - Im Menü der Wahl hakst du ab, wer schon dran war. Die Liste ist von den Stimmen getrennt und wird beim Abschluss gelöscht.
