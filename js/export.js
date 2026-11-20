@@ -36,13 +36,13 @@
     c.width = W; c.height = H;
     var g = c.getContext('2d');
     g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
-    g.fillStyle = '#111'; g.textBaseline = 'alphabetic';
+    g.fillStyle = '#0D2B4E'; g.textBaseline = 'alphabetic';
     var sy = 40;
     if (logoImg) {
       var lk = Math.min(130 / logoImg.height, 420 / logoImg.width), lw = logoImg.width * lk, lh = logoImg.height * lk;
       g.drawImage(logoImg, (W - lw) / 2, sy, lw, lh); sy += 150;
     }
-    if (school.name) { g.textAlign = 'center'; g.fillStyle = '#333'; g.font = '600 40px ' + FONT; g.fillText(school.name, W / 2, sy + 32); g.fillStyle = '#111'; }
+    if (school.name) { g.textAlign = 'center'; g.fillStyle = '#333'; g.font = '600 40px ' + FONT; g.fillText(school.name, W / 2, sy + 32); g.fillStyle = '#0D2B4E'; }
 
     // Titel (verkleinern, wenn er zu lang ist)
     var size = 72;
@@ -66,7 +66,7 @@
 
     results.forEach(function (r, b) {
       if (r.title) {
-        g.textAlign = 'left'; g.fillStyle = '#1e46a6'; g.font = '700 ' + Math.round(fs * 1.15) + 'px ' + FONT;
+        g.textAlign = 'left'; g.fillStyle = '#0067B1'; g.font = '700 ' + Math.round(fs * 1.15) + 'px ' + FONT;
         g.fillText('Gruppe ' + r.title, 100, y); y += rowH * 1.1;
       }
       r.rows.forEach(function (row, i) {
@@ -78,10 +78,10 @@
           if (g.roundRect) g.roundRect(x0, y0, ps, ps, ps * 0.18); else g.rect(x0, y0, ps, ps);
           g.clip();
           if (im) g.drawImage(im, x0, y0, ps, ps);
-          else { g.fillStyle = '#e3e8f4'; g.fillRect(x0, y0, ps, ps); g.fillStyle = '#1e46a6'; g.font = '700 ' + Math.round(ps * 0.5) + 'px ' + FONT; g.textAlign = 'center'; g.fillText(row.name.charAt(0).toUpperCase(), x0 + ps / 2, y0 + ps * 0.68); }
+          else { g.fillStyle = '#e3e8f4'; g.fillRect(x0, y0, ps, ps); g.fillStyle = '#0067B1'; g.font = '700 ' + Math.round(ps * 0.5) + 'px ' + FONT; g.textAlign = 'center'; g.fillText(row.name.charAt(0).toUpperCase(), x0 + ps / 2, y0 + ps * 0.68); }
           g.restore();
         }
-        g.fillStyle = win ? '#11693a' : '#111';
+        g.fillStyle = win ? '#11693a' : '#0D2B4E';
         g.font = (win ? '700 ' : '400 ') + fs + 'px ' + FONT;
         g.textAlign = 'left';
         g.fillText(row.rank + '.', 100, y);

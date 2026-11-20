@@ -73,9 +73,9 @@
     return { name: settings.schoolName || '', logo: settings.schoolLogo || '' };
   }
   // Logo statt Wahlurne, falls eines hochgeladen wurde
-  function schoolMark(emoji) {
+  function schoolMark() {
     var sc = school();
-    return sc.logo ? h('img', { class: 'school-logo', src: sc.logo, alt: sc.name || 'Schullogo' }) : h('div', { class: 'big' }, emoji || '🗳️');
+    return sc.logo ? h('img', { class: 'school-logo', src: sc.logo, alt: sc.name || 'Schullogo' }) : h('div', { class: 'big' }, '🗳️');
   }
   function schoolNameEl() { var sc = school(); return sc.name ? h('p', { class: 'school-name' }, sc.name) : null; }
   function schoolHead() {
@@ -296,7 +296,7 @@
     } catch (err) {
       await info('Vollbild nicht möglich', 'Der Browser hat das Vollbild abgelehnt. Bitte noch einmal tippen.');
     }
-    if (currentView === 'booth') { /* Knopfbeschriftung neu zeichnen */ var b = document.getElementById('fsbtn'); if (b) b.textContent = isFullscreen() ? '⛶ Vollbild beenden' : '⛶ Vollbild'; }
+    if (currentView === 'booth') { /* Knopfbeschriftung neu zeichnen */ var b = document.getElementById('fsbtn'); if (b) Dom.mount(b, isFullscreen() ? '⛶ Vollbild beenden' : '⛶ Vollbild'); }
   }
   function securityHelp() {
     return info('Kabine sichern (Geführter Zugriff)', 'Der Geführte Zugriff sperrt das iPad auf diese Seite. Damit können die Kinder nichts anderes öffnen.', [
@@ -1216,7 +1216,7 @@
     kab = { link: Link.create() };
     kab.link.on('open', function () {
       var st = document.getElementById('pairstate');
-      if (st) st.textContent = '✅ Verbunden. Die Wahl wird übertragen …';
+      if (st) Dom.mount(st, '✅ Verbunden. Die Wahl wird übertragen …');
     });
     kab.link.on('close', function () {
       if (ackWait) ackWait({ ok: false, msg: 'Die Verbindung zum Hauptgerät ist unterbrochen.' });
