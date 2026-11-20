@@ -42,17 +42,17 @@
       var lk = Math.min(130 / logoImg.height, 420 / logoImg.width), lw = logoImg.width * lk, lh = logoImg.height * lk;
       g.drawImage(logoImg, (W - lw) / 2, sy, lw, lh); sy += 150;
     }
-    if (school.name) { g.textAlign = 'center'; g.fillStyle = '#333'; g.font = '600 40px ' + FONT; g.fillText(school.name, W / 2, sy + 32); g.fillStyle = '#0D2B4E'; }
+    if (school.name) { g.textAlign = 'center'; g.fillStyle = '#0D2B4E'; g.font = '400 40px ' + FONT; g.fillText(school.name, W / 2, sy + 32); g.fillStyle = '#0D2B4E'; }
 
     // Titel (verkleinern, wenn er zu lang ist)
     var size = 72;
-    g.font = '700 ' + size + 'px ' + FONT;
-    while (g.measureText(title).width > W - 200 && size > 30) { size -= 2; g.font = '700 ' + size + 'px ' + FONT; }
+    g.font = '400 ' + size + 'px ' + FONT;
+    while (g.measureText(title).width > W - 200 && size > 30) { size -= 2; g.font = '400 ' + size + 'px ' + FONT; }
     g.textAlign = 'center';
     g.fillText(title, W / 2, 170 + extra);
-    g.font = '400 36px ' + FONT; g.fillStyle = '#444';
+    g.font = '400 36px ' + FONT; g.fillStyle = '#0D2B4E';
     g.fillText('Datum: ' + new Date(dateMs).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }), W / 2, 235 + extra);
-    g.fillStyle = '#999'; g.fillRect(100, 275 + extra, W - 200, 3);
+    g.fillStyle = '#0D2B4E'; g.fillRect(100, 275 + extra, W - 200, 3);
 
     // Zeilenhöhe so wählen, dass alles auf die Seite passt
     var lines = 0;
@@ -66,7 +66,7 @@
 
     results.forEach(function (r, b) {
       if (r.title) {
-        g.textAlign = 'left'; g.fillStyle = '#0067B1'; g.font = '700 ' + Math.round(fs * 1.15) + 'px ' + FONT;
+        g.textAlign = 'left'; g.fillStyle = '#0067B1'; g.font = '400 ' + Math.round(fs * 1.15) + 'px ' + FONT;
         g.fillText('Gruppe ' + r.title, 100, y); y += rowH * 1.1;
       }
       r.rows.forEach(function (row, i) {
@@ -78,11 +78,11 @@
           if (g.roundRect) g.roundRect(x0, y0, ps, ps, ps * 0.18); else g.rect(x0, y0, ps, ps);
           g.clip();
           if (im) g.drawImage(im, x0, y0, ps, ps);
-          else { g.fillStyle = '#e3e8f4'; g.fillRect(x0, y0, ps, ps); g.fillStyle = '#0067B1'; g.font = '700 ' + Math.round(ps * 0.5) + 'px ' + FONT; g.textAlign = 'center'; g.fillText(row.name.charAt(0).toUpperCase(), x0 + ps / 2, y0 + ps * 0.68); }
+          else { g.fillStyle = '#e3e8f4'; g.fillRect(x0, y0, ps, ps); g.fillStyle = '#0067B1'; g.font = '400 ' + Math.round(ps * 0.5) + 'px ' + FONT; g.textAlign = 'center'; g.fillText(row.name.charAt(0).toUpperCase(), x0 + ps / 2, y0 + ps * 0.68); }
           g.restore();
         }
         g.fillStyle = win ? '#11693a' : '#0D2B4E';
-        g.font = (win ? '700 ' : '400 ') + fs + 'px ' + FONT;
+        g.font = (win ? '400 ' : '400 ') + fs + 'px ' + FONT;
         g.textAlign = 'left';
         g.fillText(row.rank + '.', 100, y);
         g.fillText(row.name, nameX, y);
@@ -90,7 +90,7 @@
         y += rowH;
       });
       if (r.abstentions != null) {            // bei begrenzter Platzzahl werden die Enthaltungen nicht gezeigt
-        g.fillStyle = '#555'; g.font = 'italic 400 ' + fs + 'px ' + FONT; g.textAlign = 'left';
+        g.fillStyle = '#0D2B4E'; g.font = 'italic 400 ' + fs + 'px ' + FONT; g.textAlign = 'left';
         g.fillText('Enthaltungen', nameX, y);
         g.textAlign = 'right'; g.fillText(String(r.abstentions), W - 100, y);
         y += rowH * 0.4;
@@ -98,7 +98,7 @@
       y += rowH;
     });
 
-    g.textAlign = 'center'; g.fillStyle = '#999'; g.font = '400 26px ' + FONT;
+    g.textAlign = 'center'; g.fillStyle = '#0D2B4E'; g.font = '400 26px ' + FONT;
     g.fillText('Klassensprecherwahl-App', W / 2, H - 70);
     return c;
   }

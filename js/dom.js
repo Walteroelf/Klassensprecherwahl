@@ -27,9 +27,9 @@
     '\u2713': 'haken', '\u2705': 'haken', '\u26A0': 'warnung', '\u21A9': 'zurueck', '\u{1F4F2}': 'telefon',
     '\u{1F50A}': 'lautsprecher', '\u{1F3C6}': 'pokal', '\u{1F389}': 'stern', '\u{1F4C4}': 'dokument', '\u2197': 'teilen',
     '\u{1F441}': 'auge', '\u{1F440}': 'auge', '\u23F3': 'sanduhr', '\u{1F941}': 'stern', '\u{1F512}': 'schloss',
-    '\u26F6': 'vollbild', '\u232B': 'ruecktaste', '\u25B6': 'pfeil-rechts'
+    '\u26F6': 'vollbild', '\u232B': 'ruecktaste', '\u25B6': 'pfeil-rechts', '\u270F': 'stift'
   };
-  var ICON_RE = /(\u{1F5F3}|\u{1F4D6}|\u2190|\u2699|\u{1F393}|\u{1F527}|\u{1F5BC}|\u{1F4F8}|\u{1F4F7}|\u{1F504}|\u2713|\u2705|\u26A0|\u21A9|\u{1F4F2}|\u{1F50A}|\u{1F3C6}|\u{1F389}|\u{1F4C4}|\u2197|\u{1F441}|\u{1F440}|\u23F3|\u{1F941}|\u{1F512}|\u26F6|\u232B|\u25B6)\uFE0F?/gu;
+  var ICON_RE = /(\u{1F5F3}|\u{1F4D6}|\u2190|\u2699|\u{1F393}|\u{1F527}|\u{1F5BC}|\u{1F4F8}|\u{1F4F7}|\u{1F504}|\u2713|\u2705|\u26A0|\u21A9|\u{1F4F2}|\u{1F50A}|\u{1F3C6}|\u{1F389}|\u{1F4C4}|\u2197|\u{1F441}|\u{1F440}|\u23F3|\u{1F941}|\u{1F512}|\u26F6|\u232B|\u25B6|\u270F)\uFE0F?/gu;
 
   function ico(name) {
     var NS = 'http://www.w3.org/2000/svg';
